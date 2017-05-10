@@ -47,7 +47,7 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
 
     string origem, destino, auxStr, line;
     getline(infile, auxStr);
-    int numNos = atoi(auxStr.c_str());
+    unsigned int numNos = (unsigned int) atoi(auxStr.c_str());
 
     nos = vector<No *>(numNos, NULL);
     vector<Aresta *> arestas;
@@ -293,6 +293,8 @@ void Grafo::vizinhancaAberta(string id) {
             cout << nos[arestasAux[i]->getDestino()]->getId() << " ";
         }
     }
+
+    cout << endl;
 }
 
 void Grafo::vizinhancaFechada(string id) {
@@ -371,10 +373,6 @@ void Grafo::excluirAresta(string idOrigem, string idDestino) {
         cout << "Aresta inexistente no grafo!\n";
     } else {
         // quando é digrafo e há somente uma aresta, podemos removê-la
-
-        // é necessário guardar peso numa variável local pois, no caso de grafos não direcionados,
-        // após a remoção da primeira aresta, perderemos o valor de peso original
-        int peso = arestaResult->getPeso();
         nos[indiceOrigem]->removerAresta(indiceDestino);
         if (!isDigrafo) {
             // quando não é digrafo e há duas arestas, podemos removê-las pois elas são equivalentes
@@ -1169,13 +1167,12 @@ void Grafo::printGrafo() {
 struct SetDisjunto {
     vector<int> pai, rank;
 
-    SetDisjunto(int n) {
+    SetDisjunto(unsigned int n) {
         // Alocar memória e inicializar os vetores
         pai = vector<int>(n + 1);
         rank = vector<int>(n + 1);
 
         for (int i = 0; i <= n; i++) {
-            //todo elemento é pai de si mesmo e tem rank 0
             pai[i] = i;
             rank[i] = 0;
         }

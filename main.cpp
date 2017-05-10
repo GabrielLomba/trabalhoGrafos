@@ -158,7 +158,7 @@ void showEditMenu() {
 
 void showInfoGrafoMenu() {
     int option = 0;
-    while (option != 12) {
+    while (option != 13) {
         cout << "Selecione uma das opcoes abaixo apertando seu respectivo numero\n";
 
 
@@ -172,8 +172,9 @@ void showInfoGrafoMenu() {
         cout << "8. Subgrafo induzido\n";
         cout << "9. Verificar a k-regularidade do grafo\n";
         cout << "10. Verificar componentes fortemente conexas\n";
-        cout << "11. Verificar informacoes do grafo\n";
-        cout << "12. Voltar ao menu anterior\n\n";
+        cout << "11. Verificar propriedades do grafo\n";
+        cout << "12. Mostrar arvore geradora minima\n";
+        cout << "13. Voltar ao menu anterior\n\n";
         cout << "Opcao escolhida: ";
 
         cin >> option;
@@ -236,12 +237,15 @@ void showInfoGrafoMenu() {
                 showInfoVerificaInfoGrafoMenu();
                 break;
             case 12:
+                grafo->showArvoreGeradoraMinima();
+                break;
+            case 13:
                 break;
             default:
                 cout << "Opcao invalida! \n\n";
         }
 
-        if (option != 12) {
+        if (option != 13) {
             cout << endl;
         }
     }
