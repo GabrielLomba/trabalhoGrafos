@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include <stack>
+#include <map>
 
 using namespace std;
 
@@ -15,6 +16,7 @@ class Grafo
 private:
     Grafo(vector<string> ids, vector<Aresta*> arestas); // construtor auxiliar usado no cálculo das componentes fortemente conexas
     vector<No*> nos;
+    map<string, int> idMap;
     bool isDigrafo = false; // assumimos que um grafo é não direcionado por padrão
     bool isPonderado = true; // assumimos que um grafo é ponderado por padrão
     string nomeArquivoSaida;

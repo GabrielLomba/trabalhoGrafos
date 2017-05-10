@@ -49,13 +49,20 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
     nos = vector<No*>(numNos, NULL);
     vector<Aresta*> arestas;
 
-    map<string, int> idMap;
+    map<pair<int, int>, bool> arestaMap;
     map<pair<int, int>, bool> arestaMap;
     map<string, int>::iterator it;
     map<pair<int, int>, bool>::iterator itPair;
     int indiceProximo = 0, indiceOrigem, indiceDestino, peso;
 
     while (getline(infile, line)) {
+        if(line[0] == ' '){
+            // quando há espaços em branco antes no input, devemos removê-los
+            // caso observado em uma das instâncias passadas no trabalho
+            unsigned int end = 0;
+            while(line[end++] == ' ');
+            line.erase(0, end - 1);
+        }
         istringstream iss(line);
         getline(iss, origem, ' ');
         getline(iss, destino, ' ');
@@ -237,13 +244,9 @@ void Grafo::grauNo(string id) {
 }
 
 int Grafo::getIndexNo(string id) {
-    for (int i = 0; i < nos.size(); i++) {
-        if (nos[i]->getId().compare(id) == 0) {
-            return i;
-        }
-    }
-
-    return -1;
+    map<string, int>::iterator it = idMap.find(id);
+    if(it == idMap.end()) return -1;
+    else return it->second;
 }
 
 void Grafo::fechoTransitivoDireto(string id) {
@@ -832,7 +835,7 @@ void Grafo::complementar() {
         for (int j = 0; j < nos.size(); j++) {
             if (i == j)  continue;
             aux = nos[i]->encontrarArestasComDestino(j);
-            if (aux == NULL && (isDigrafo || j < i)) {
+            if (aux == NULL && (isDigrafo || j > i)) {
                 if(count % 10 == 0) cout << endl; // imprimir 10 por linha
                 count++;
                 cout << "(" << nos[i]->getId() << ", " << nos[j]->getId() << ") ";
@@ -1135,7 +1138,8 @@ void Grafo::printGrafo() {
         for (int j = 0; j < arestas.size(); j++) {
             // só devem ser imprimidas as arestas com destino maior ou igual à origem ou todas, quando é digrafo.
             // Isso faz com que arestas não sejam duplicadas em grafos não direcinados
-            if(isDigrafo || arestas[j]->getDestino() < i){
+            if(isDigrafo || arestas[j]->getDestino() > i){
+                if(j % 10 == 0) cout << "\n"; // imprimir 10 por linha
                 cout << "(" << nos[i]->getId() << ", " << nos[arestas[j]->getDestino()]->getId();
                 // caso seja ponderado, é necessário mostrar os pesos
                 if (isPonderado)  cout << ", " << arestas[j]->getPeso();
