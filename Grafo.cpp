@@ -155,8 +155,8 @@ void Grafo::salvarArquivo() {
                 // caso seja digrafo, todas as arestas devem ser escritas. Caso contrário,
                 // somente as arestas que se relacionam com nós maiores devem ser adicionadas pois
                 // uma das duas arestas geradas em grafos não direcionados já foi escrita
-                infile << arestas[j]->getOrigem() << " " << arestas[j]->getDestino() << " " << arestas[j]->getPeso()
-                       << endl;
+                infile << nos[arestas[j]->getOrigem()]->getId() << " " << nos[arestas[j]->getDestino()]->getId() << " "
+                       << arestas[j]->getPeso() << endl;
             }
         }
     }
@@ -180,6 +180,7 @@ void Grafo::inserirNo(string id) {
 
     No *no = new No(id);
     nos.push_back(no);
+    idMap[id] = nos.size() -1;
     cout << "No " << id << " inserido com sucesso!\n";
 }
 
@@ -192,6 +193,7 @@ void Grafo::excluirNo(string id) {
 
     delete (nos[indice]);  // desalocar mémoria do nó
     nos.erase(nos.begin() + indice);
+    idMap.erase(id); // apagar a chave do id passado do map de IDs
     for (int i = 0; i < nos.size(); i++) {
         nos[i]->removerAresta(indice); // remover todas as arestas que tinham o nó excluído como destino
     }
@@ -1143,11 +1145,15 @@ void Grafo::printGrafo() {
         arestas = *(nos[i]->getArestas());
         cout << "No " << nos[i]->getId() << ":  ";
         for (int j = 0; j < arestas.size(); j++) {
-            if (j % 10 == 0) cout << "\n"; // imprimir 10 por linha
-            cout << "(" << nos[i]->getId() << ", " << nos[arestas[j]->getDestino()]->getId();
-            // caso seja ponderado, é necessário mostrar os pesos
-            if (isPonderado) cout << ", " << arestas[j]->getPeso();
-            cout << ") ";
+            if (isPonderado) {
+                // caso seja ponderado, é necessário mostrar os pesos
+                if (j != 0 && j % 10 == 0) cout << "\n"; // imprimir 10 por linha
+                cout << "(" << nos[arestas[j]->getDestino()]->getId() << ", " << arestas[j]->getPeso() << ") ";
+            } else {
+                // caso contrário, somente mostrar os destinos das arestas
+                if (j != 0 && j % 20 == 0) cout << "\n"; // imprimir 10 por linha
+                cout << nos[arestas[j]->getDestino()]->getId() << " ";
+            }
         }
         cout << endl;
     }

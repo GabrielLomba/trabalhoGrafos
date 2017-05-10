@@ -463,6 +463,8 @@ void showInfoVerificaInfoGrafoMenu() {
             case 6:
                 cout << "Trivial: " << getBooleanString(grafo->isTrivial());
                 break;
+            case 7:
+                break;
             default:
                 cout << "Opcao invalida! \n\n";
         }
