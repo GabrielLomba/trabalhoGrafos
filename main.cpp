@@ -46,18 +46,6 @@ static string getBooleanString(bool b) {
     if (b)  return "Sim\n";
     else return "Nao\n";
 }
-
-void printStringSet(set<string> result, string emptyMsg) {
-    if (result.size() == 0) {
-        cout << emptyMsg;
-        return;
-    }
-    set<string>::iterator it;
-    for (it = result.begin(); it != result.end(); ++it) {
-        cout << *it + " ";
-    }
-    cout << endl;
-}
 #pragma endregion
 
 //Nessa região estão as funções que exibem as funções exitente no menu
@@ -372,10 +360,10 @@ void showInfoNoMenu() {
                 grafo->grauNo(getStringInput("ID do no: "));
                 break;
             case 4:
-                printStringSet(grafo->vizinhancaAberta(getStringInput("ID do no: ")), "Nao ha vizinhos");
+                grafo->vizinhancaAberta(getStringInput("ID do no: "));
                 break;
             case 5:
-                printStringSet(grafo->vizinhancaFechada(getStringInput("ID do no: ")), "Nao ha vizinhos");
+                grafo->vizinhancaFechada(getStringInput("ID do no: "));
                 break;
             case 6:
                 break;

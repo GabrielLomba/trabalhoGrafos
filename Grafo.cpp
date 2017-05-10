@@ -276,35 +276,41 @@ void Grafo::fechoTransitivoIndireto(string id) {
     cout << endl;
 }
 
-set<string> Grafo::vizinhancaAberta(string id) {
+void Grafo::vizinhancaAberta(string id) {
     int indice = getIndexNo(id);
     if (indice == -1) {
         printMensagemNoInexistente(id);
-        return set<string>();
+        return;
     }
 
-    set<string> vizinhos; // set é usado para evitar duplicações nas vizinhanças
+    // já que não lidamos com multigrafos, podemos simplesmente imprimir todas as arestas do nó
     vector<Aresta *> arestasAux = *(nos[indice]->getArestas());
-    for (int i = 0; i < arestasAux.size(); i++) {
-        vizinhos.insert(nos[arestasAux[i]->getDestino()]->getId());
+    if(arestasAux.size() == 0){
+        cout << "Nao ha vizinhos\n";
+    } else {
+        for (int i = 0; i < arestasAux.size(); i++) {
+            if(i != 0 && i % 10 == 0) cout << "\n"; // imprimir 10 por linha
+            cout << nos[arestasAux[i]->getDestino()]->getId() << " ";
+        }
     }
-
-    return vizinhos;
 }
 
-set<string> Grafo::vizinhancaFechada(string id) {
-    int index = getIndexNo(id);
-    if (index == -1) {
+void Grafo::vizinhancaFechada(string id) {
+    int indice = getIndexNo(id);
+    if (indice == -1) {
         printMensagemNoInexistente(id);
-        return set<string>();
+        return;
     }
 
-    set<string> vizinhos = vizinhancaAberta(id);
-    if (!vizinhos.count(nos[index]->getId())) {
-        vizinhos.insert(nos[index]->getId());
+    // já que não lidamos com multigrafos, podemos simplesmente imprimir todas as arestas do nó
+    vector<Aresta *> arestasAux = *(nos[indice]->getArestas());
+    if(arestasAux.size() == 0){
+        cout << "Nao ha vizinhos\n";
+    } else {
+        // caso não haja laço neste nó, devemos imprimí-lo
+        if(nos[indice]->encontrarArestasComDestino(indice) == NULL)  cout << nos[indice]->getId() << " ";
+        vizinhancaAberta(id);
     }
-
-    return vizinhos;
 }
 
 void Grafo::printMensagemNoInexistente(string id) {

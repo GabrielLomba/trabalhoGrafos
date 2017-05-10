@@ -50,8 +50,8 @@ public:
     void inserirAresta(string idOrigem, string idDestino, int peso);
     void excluirAresta(string idOrigem, string idDestino);
     void grauNo(string id);
-    set<string> vizinhancaAberta(string id);
-    set<string> vizinhancaFechada(string id);
+    void vizinhancaAberta(string id);
+    void vizinhancaFechada(string id);
     int grauGrafo();
     int ordemGrafo();
     void complementar();
