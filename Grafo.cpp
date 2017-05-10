@@ -818,28 +818,28 @@ void Grafo::complementar() {
         return;
     }
 
-    set<Aresta*> result;
+    cout << "O grafo complementar eh G(V, E) onde: \n";
+    cout << "V: { ";
+    for (int i = 0; i < nos.size(); i++){
+        if(i % 10 == 0) cout << endl; // imprimir 10 por linha
+        cout << nos[i]->getId() << " ";
+    }
+    cout << "}\n\nE: {";
+    int count = 0;
+    //alocar no heap pois podem ser muitas arestas
     Aresta* aux;
     for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
             if (i == j)  continue;
             aux = nos[i]->encontrarArestasComDestino(j);
-            if (aux == NULL) {
-                result.insert(new Aresta(i, j, 1));
+            if (aux == NULL && (isDigrafo || j < i)) {
+                if(count % 10 == 0) cout << endl; // imprimir 10 por linha
+                count++;
+                cout << "(" << nos[i]->getId() << ", " << nos[j]->getId() << ") ";
             }
         }
     }
 
-    cout << "O grafo complementar eh G(V, E) onde: \n";
-    cout << "V: { ";
-    for (int i = 0; i < nos.size(); i++)  cout << nos[i]->getId() << " ";
-    cout << "}\n";
-    cout << "E: { ";
-    set<Aresta*>::iterator it;
-    for (it = result.begin(); it != result.end(); ++it) {
-        Aresta* a = *it;
-        cout << "(" << nos[a->getOrigem()]->getId() << ", " << nos[a->getDestino()]->getId() << ") ";
-    }
     cout << "}\n";
 }
 
@@ -989,7 +989,7 @@ void Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *desc
             // Se o vértice descoberto mais cedo alcançável da subárvore abaixo do adjacente
             // está abaixo do nó atual, a aresta em questão é ponte
             if ((*min)[adjacente] > (*descoberta)[atual]) {
-                //cout << "(" << nos[atual]->getId() << ", " << nos[adjacente]->getId() << ")\n";
+                cout << "(" << nos[atual]->getId() << ", " << nos[adjacente]->getId() << ")\n";
                 *existe = true;
             }
 
@@ -1017,7 +1017,7 @@ void Grafo::showArestasPonte()
         if (!visitado[i])
             arestasPonteAux(i, &visitado, &descoberta, &min, &pai, &arestaPonteExiste);
 
-    //if (!arestaPonteExiste)  cout << "Nao ha arestas ponte\n";
+    if (!arestaPonteExiste)  cout << "Nao ha arestas ponte\n";
 }
 
 //método auxiliar que encontra os nós de articulação. O algoritmo faz uma busca em profundidade no grafo e, a partir da árvore criada,
@@ -1132,11 +1132,15 @@ void Grafo::printGrafo() {
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
         cout << "No " << nos[i]->getId() << ":  ";
-        // caso seja ponderado, não é necessário mostrar os pesos
         for (int j = 0; j < arestas.size(); j++) {
-            cout << "(" << nos[i]->getId() << ", " << nos[arestas[j]->getDestino()]->getId();
-            if (isPonderado)  cout << ", " << arestas[j]->getPeso();
-            cout << ") ";
+            // só devem ser imprimidas as arestas com destino maior ou igual à origem ou todas, quando é digrafo.
+            // Isso faz com que arestas não sejam duplicadas em grafos não direcinados
+            if(isDigrafo || arestas[j]->getDestino() < i){
+                cout << "(" << nos[i]->getId() << ", " << nos[arestas[j]->getDestino()]->getId();
+                // caso seja ponderado, é necessário mostrar os pesos
+                if (isPonderado)  cout << ", " << arestas[j]->getPeso();
+                cout << ") ";
+            }
         }
         cout << endl;
     }
