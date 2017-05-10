@@ -50,7 +50,6 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
     vector<Aresta*> arestas;
 
     map<pair<int, int>, bool> arestaMap;
-    map<pair<int, int>, bool> arestaMap;
     map<string, int>::iterator it;
     map<pair<int, int>, bool>::iterator itPair;
     int indiceProximo = 0, indiceOrigem, indiceDestino, peso;
