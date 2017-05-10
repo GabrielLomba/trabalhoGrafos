@@ -10,6 +10,7 @@
 #define PARTICAO_B 2
 
 #pragma region Construtor
+
 // construtor padrão
 Grafo::Grafo(string nomeArquivoEntrada, string nomeArquivoSaida) {
     lerArquivo(nomeArquivoEntrada);
@@ -17,7 +18,7 @@ Grafo::Grafo(string nomeArquivoEntrada, string nomeArquivoSaida) {
 }
 
 //construtor auxiliar para gerar grafo transposto (usado para calcular as componentes fortemente conexas)
-Grafo::Grafo(vector<string> ids, vector<Aresta*> arestas) {
+Grafo::Grafo(vector<string> ids, vector<Aresta *> arestas) {
     isDigrafo = true;
 
     for (int i = 0; i < ids.size(); i++) {
@@ -30,10 +31,12 @@ Grafo::Grafo(vector<string> ids, vector<Aresta*> arestas) {
                 new Aresta(arestas[i]->getDestino(), arestas[i]->getOrigem(), arestas[i]->getPeso()));
     }
 }
+
 #pragma endregion
 
 /*Nessa região estão desenvolvidas as funções responsáveis pela leitura e criação de arquivo*/
 #pragma region  Arquivo
+
 void Grafo::lerArquivo(string nomeArquivoEntrada) {
     ifstream infile(nomeArquivoEntrada);
 
@@ -46,8 +49,8 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
     getline(infile, auxStr);
     int numNos = atoi(auxStr.c_str());
 
-    nos = vector<No*>(numNos, NULL);
-    vector<Aresta*> arestas;
+    nos = vector<No *>(numNos, NULL);
+    vector<Aresta *> arestas;
 
     map<pair<int, int>, bool> arestaMap;
     map<string, int>::iterator it;
@@ -55,11 +58,11 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
     int indiceProximo = 0, indiceOrigem, indiceDestino, peso;
 
     while (getline(infile, line)) {
-        if(line[0] == ' '){
+        if (line[0] == ' ') {
             // quando há espaços em branco antes no input, devemos removê-los
             // caso observado em uma das instâncias passadas no trabalho
             unsigned int end = 0;
-            while(line[end++] == ' ');
+            while (line[end++] == ' ');
             line.erase(0, end - 1);
         }
         istringstream iss(line);
@@ -69,13 +72,11 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
         if (!isPonderado) {
             // caso já tenha sido detectado que o grafo não é ponderado, podemos setar o peso para 1
             peso = 1;
-        }
-        else if (getline(iss, auxStr, ' ')) {
+        } else if (getline(iss, auxStr, ' ')) {
             // caso contrário, devemos tentar o peso. Caso tenha sucesso, podemos assumir
             // que o grafo é ponderado e setamos o peso de acordo
             peso = atoi(auxStr.c_str());
-        }
-        else {
+        } else {
             // caso não foi possível ler o peso, podemos assumir que o grafo não é ponderado e,
             // portanto, devemos setar o peso para 1
             isPonderado = false;
@@ -89,8 +90,7 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
             nos[indiceProximo] = new No(origem);
             indiceOrigem = indiceProximo; // caso o nó não exista ainda, precisamos setar novamente o indiceOrigem
             indiceProximo++;  // caso ambos origem e destino não existam, incrementar o i aqui fará com que os dois sejam criados adequadamente
-        }
-        else {
+        } else {
             indiceOrigem = it->second;
         }
 
@@ -101,12 +101,11 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
             nos[indiceProximo] = new No(destino);
             indiceDestino = indiceProximo; // caso o nó não exista ainda, precisamos setar novamente o indiceDestino
             indiceProximo++;
-        }
-        else {
+        } else {
             indiceDestino = it->second;
         }
 
-        Aresta* aresta = new Aresta(indiceOrigem, indiceDestino, peso);
+        Aresta *aresta = new Aresta(indiceOrigem, indiceDestino, peso);
 
         if (!isDigrafo) { // caso já seja digrafo, não há necessidade de checar novamente
             //caso a aresta inversa já foi inserida, o iterator não terá chegado até o final. Portanto, será digrafo
@@ -148,7 +147,7 @@ void Grafo::salvarArquivo() {
 
     infile << nos.size() << endl;
 
-    vector<Aresta*> arestas;
+    vector<Aresta *> arestas;
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
         for (int j = 0; j < arestas.size(); j++) {
@@ -156,7 +155,8 @@ void Grafo::salvarArquivo() {
                 // caso seja digrafo, todas as arestas devem ser escritas. Caso contrário,
                 // somente as arestas que se relacionam com nós maiores devem ser adicionadas pois
                 // uma das duas arestas geradas em grafos não direcionados já foi escrita
-                infile << arestas[j]->getOrigem() << " " << arestas[j]->getDestino() << " " << arestas[j]->getPeso() << endl;
+                infile << arestas[j]->getOrigem() << " " << arestas[j]->getDestino() << " " << arestas[j]->getPeso()
+                       << endl;
             }
         }
     }
@@ -178,7 +178,7 @@ void Grafo::inserirNo(string id) {
         return;
     }
 
-    No* no = new No(id);
+    No *no = new No(id);
     nos.push_back(no);
     cout << "No " << id << " inserido com sucesso!\n";
 }
@@ -190,7 +190,7 @@ void Grafo::excluirNo(string id) {
         return;
     }
 
-    delete(nos[indice]);  // desalocar mémoria do nó
+    delete (nos[indice]);  // desalocar mémoria do nó
     nos.erase(nos.begin() + indice);
     for (int i = 0; i < nos.size(); i++) {
         nos[i]->removerAresta(indice); // remover todas as arestas que tinham o nó excluído como destino
@@ -208,11 +208,9 @@ int Grafo::adicionarNoInexistente(string id) {
         if (escolha.compare("s") == 0) {
             inserirNo(id);
             return nos.size() - 1;
-        }
-        else if (escolha.compare("n") == 0) {
+        } else if (escolha.compare("n") == 0) {
             return -1;
-        }
-        else {
+        } else {
             cout << "Opção inválida!\n";
         }
     } while (escolha.compare("n") != 0 && escolha.compare("s") != 0);
@@ -236,15 +234,14 @@ void Grafo::grauNo(string id) {
 
         cout << "Grau de entrada: " << nos[indice]->getGrau() << endl;
         cout << "Grau de saida: " << grauSaida << endl;
-    }
-    else {
+    } else {
         cout << "Grau: " << nos[indice]->getGrau() << endl;
     }
 }
 
 int Grafo::getIndexNo(string id) {
     map<string, int>::iterator it = idMap.find(id);
-    if(it == idMap.end()) return -1;
+    if (it == idMap.end()) return -1;
     else return it->second;
 }
 
@@ -272,7 +269,7 @@ void Grafo::fechoTransitivoIndireto(string id) {
     vector<vector<int>> distancias = floydAux();
     cout << "Fecho Transitivo Indireto: ";
     for (int i = 0; i < distancias.size(); i++) {
-        if (distancias[i][indice] != INT_MAX)  cout << nos[i]->getId() << " ";
+        if (distancias[i][indice] != INT_MAX) cout << nos[i]->getId() << " ";
     }
     cout << endl;
 }
@@ -285,7 +282,7 @@ set<string> Grafo::vizinhancaAberta(string id) {
     }
 
     set<string> vizinhos; // set é usado para evitar duplicações nas vizinhanças
-    vector<Aresta*> arestasAux = *(nos[indice]->getArestas());
+    vector<Aresta *> arestasAux = *(nos[indice]->getArestas());
     for (int i = 0; i < arestasAux.size(); i++) {
         vizinhos.insert(nos[arestasAux[i]->getDestino()]->getId());
     }
@@ -311,22 +308,24 @@ set<string> Grafo::vizinhancaFechada(string id) {
 void Grafo::printMensagemNoInexistente(string id) {
     cout << "O no de id " << id << " nao existe no grafo!\n";
 }
+
 #pragma endregion
 
 /*Nessa região estão desenvolvidas as funções que irão manipular(Adicionar e Excluir) uma aresta e retornar informações sobre a aresta*/
 #pragma region Manipulação e Informação de Arestas
+
 void Grafo::inserirAresta(string idOrigem, string idDestino, int peso) {
     int indiceOrigem = getIndexNo(idOrigem);
     if (indiceOrigem == -1) {
-        if ((indiceOrigem = adicionarNoInexistente(idOrigem)) == -1)  return;
+        if ((indiceOrigem = adicionarNoInexistente(idOrigem)) == -1) return;
     }
 
     int indiceDestino = getIndexNo(idDestino);
     if (indiceDestino == -1) {
-        if ((indiceDestino = adicionarNoInexistente(idDestino)) == -1)  return;
+        if ((indiceDestino = adicionarNoInexistente(idDestino)) == -1) return;
     }
 
-    Aresta* aresta = nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino);
+    Aresta *aresta = nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino);
     if (aresta != NULL) {
         cout << "Aresta ja existe no grafo!\n";
         return;
@@ -342,6 +341,7 @@ void Grafo::inserirAresta(string idOrigem, string idDestino, int peso) {
 
     cout << "\nAresta inserida com sucesso!\n";
 }
+
 void Grafo::excluirAresta(string idOrigem, string idDestino) {
     int indiceOrigem = getIndexNo(idOrigem);
 
@@ -357,12 +357,11 @@ void Grafo::excluirAresta(string idOrigem, string idDestino) {
         return;
     }
 
-    Aresta* arestaResult = nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino);
+    Aresta *arestaResult = nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino);
 
     if (arestaResult == NULL) {
         cout << "Aresta inexistente no grafo!\n";
-    }
-    else {
+    } else {
         // quando é digrafo e há somente uma aresta, podemos removê-la
 
         // é necessário guardar peso numa variável local pois, no caso de grafos não direcionados,
@@ -376,10 +375,12 @@ void Grafo::excluirAresta(string idOrigem, string idDestino) {
         cout << "Aresta excluida com sucesso!\n";
     }
 }
+
 #pragma endregion
 
 /*Nessa região estão desenvolvidos os algoritmos de caminho mínimo: Dijkstra e Floyd*/
 #pragma region Caminho Mínimo
+
 vector<int> Grafo::dijkstraAux(int indice) {
     vector<int> distancias(nos.size(), INT_MAX); // inicializa o vetor de distância com infinito
     vector<bool> visitados(nos.size(), false);
@@ -390,8 +391,8 @@ vector<int> Grafo::dijkstraAux(int indice) {
         int u = indiceMenorDistancia(distancias, visitados);
         visitados[u] = true;
 
-        No* pont = nos[u];
-        vector<Aresta*> arestas = *(pont->getArestas());
+        No *pont = nos[u];
+        vector<Aresta *> arestas = *(pont->getArestas());
 
         for (int j = 0; j < arestas.size(); j++) {
             int auxIndice = arestas[j]->getDestino();
@@ -408,8 +409,7 @@ vector<int> Grafo::dijkstraAux(int indice) {
     return distancias;
 }
 
-int Grafo::dijkstra(string idOrigem, string idDestino)
-{
+int Grafo::dijkstra(string idOrigem, string idDestino) {
     int indiceOrigem = getIndexNo(idOrigem);
     if (indiceOrigem == -1) {
         printMensagemNoInexistente(idOrigem);
@@ -426,7 +426,7 @@ int Grafo::dijkstra(string idOrigem, string idDestino)
 }
 
 vector<vector<int>> Grafo::floydAux() {
-    Aresta* arestaAux; // auxiliar que conterá a aresta do nó i ao j na primeira fase do Floyd
+    Aresta *arestaAux; // auxiliar que conterá a aresta do nó i ao j na primeira fase do Floyd
     // matriz que será preenchida pelo algoritmo de Floyd
     vector<vector<int>> matrizDistancia(nos.size(), vector<int>(nos.size()));
 
@@ -439,13 +439,11 @@ vector<vector<int>> Grafo::floydAux() {
                 if (arestaAux != NULL) {
                     //caso seja multigrafo, pegar a aresta de menor peso
                     matrizDistancia[i][j] = arestaAux->getPeso();
-                }
-                else {
+                } else {
                     //caso não haja arestas entre i e j, o caminho entre eles é infinito
                     matrizDistancia[i][j] = INT_MAX;
                 }
-            }
-            else {
+            } else {
                 matrizDistancia[i][j] = 0;
             }
         }
@@ -455,14 +453,15 @@ vector<vector<int>> Grafo::floydAux() {
     for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
             for (int k = 0; k < nos.size(); k++) {
-                if (i == j)  break; // caso seja o mesmo nó, ir para a proxima iteraçao
+                if (i == j) break; // caso seja o mesmo nó, ir para a proxima iteraçao
                 // caso o nó intermediário seja um dos nós a se calcular a distância, podemos seguir para a próxima iteração pois é impossível diminuir o caminho usando eles mesmos
-                if (k == i || k == j)  continue;
+                if (k == i || k == j) continue;
 
                 // caso ainda não haja caminho do i ao k ou do k ao j, impossível criar caminho
-                if (matrizDistancia[i][k] == INT_MAX || matrizDistancia[k][j] == INT_MAX)  continue;
+                if (matrizDistancia[i][k] == INT_MAX || matrizDistancia[k][j] == INT_MAX) continue;
 
-                int result = matrizDistancia[i][k] + matrizDistancia[k][j]; // calcular o caminho usando k como intermediário
+                int result =
+                        matrizDistancia[i][k] + matrizDistancia[k][j]; // calcular o caminho usando k como intermediário
                 if (matrizDistancia[i][j] > result) { // trocar caso seja maior
                     matrizDistancia[i][j] = result;
                 }
@@ -512,8 +511,8 @@ int Grafo::indiceMenorDistancia(vector<int> distancias, vector<bool> visitados) 
 // bool print true significa que devemos imprimir os valores visitados
 void Grafo::buscaEmProfundidadeAux(int indiceOrigem, vector<bool> *visitado, bool print) {
     (*visitado)[indiceOrigem] = true;
-    if (print)  cout << nos[indiceOrigem]->getId() << " ";
-    vector<Aresta*> arestas = *(nos[indiceOrigem]->getArestas());
+    if (print) cout << nos[indiceOrigem]->getId() << " ";
+    vector<Aresta *> arestas = *(nos[indiceOrigem]->getArestas());
     for (int i = 0; i < arestas.size(); i++) {
         int indiceDestino = arestas[i]->getDestino();
         // caso o nó já tenha sido visitado, podemos continuar pois as arestas dele já estão sendo iteradas
@@ -537,7 +536,7 @@ void Grafo::buscaEmProfundidade(string id) {
 
     // caso o grafo não seja conectado, devemos checar e realizar a busca a partir de todas as componentes conexas
     for (int i = 0; i < nos.size(); i++) {
-        if (visitado[i])  continue;  // caso o nó já tenha sido visitado, podemos pular
+        if (visitado[i]) continue;  // caso o nó já tenha sido visitado, podemos pular
         buscaEmProfundidadeAux(i, &visitado, true);
     }
 
@@ -555,13 +554,13 @@ void Grafo::buscaEmLargura(string id) {
     queue<int> filaVisitados;
     vector<bool> visitado(nos.size(), false);
     int indice;
-    vector<Aresta*> arestasAux;
+    vector<Aresta *> arestasAux;
 
     cout << "Busca em largura \n";
     // setar condições do loop para começar no indiceInicio passado
     // loop necessário para fazer com que todas as componentes sejam visitadas
     for (int i = indiceInicio; i < indiceInicio + nos.size(); i++) {
-        if (visitado[i % nos.size()])  continue;
+        if (visitado[i % nos.size()]) continue;
         filaVisitados.push(i % nos.size());
         while (!filaVisitados.empty()) {
             indice = filaVisitados.front();
@@ -587,6 +586,7 @@ void Grafo::buscaEmLargura(string id) {
         }
     }
 }
+
 #pragma endregion
 
 /*Nessa região estão desenvolvidas as funções que verificam e retornam as características  e informações de um grafo*/
@@ -620,16 +620,16 @@ bool Grafo::isKRegular(int k) {
 
 bool Grafo::isCompleto() {
     vector<bool> destinos = vector<bool>(nos.size(), false);
-    vector<Aresta*> arestas;
+    vector<Aresta *> arestas;
     int indexDestino;
 
     for (int i = 0; i < nos.size(); i++) {
-        if (nos[i]->getGrau() != nos.size() - 1)  return false;  // todos os nós precisam se conectar a n-1 nós
+        if (nos[i]->getGrau() != nos.size() - 1) return false;  // todos os nós precisam se conectar a n-1 nós
         arestas = *(nos[i]->getArestas());
         for (int j = 0; j < arestas.size(); j++) {
             indexDestino = arestas[j]->getDestino();
-            if (destinos[indexDestino])  return false; // caso haja aresta paralela, não é completo
-            if (i == indexDestino)  return false; // caso haja laço, não é completo
+            if (destinos[indexDestino]) return false; // caso haja aresta paralela, não é completo
+            if (i == indexDestino) return false; // caso haja laço, não é completo
             destinos[indexDestino] = true;
         }
         fill(destinos.begin(), destinos.end(), false);
@@ -649,7 +649,7 @@ bool Grafo::isEuleriano() {
 
     }
 
-    if (!result)  return false; // caso já tenha sido detectado que o grafo não é euleriano, podemos retornar
+    if (!result) return false; // caso já tenha sido detectado que o grafo não é euleriano, podemos retornar
 
     // caso contrário, devemos verificar a conectividade do grafo
     // caso, após uma passada da busca em profundidade, todos os nós tenham sido visitados, o grafo é conexo
@@ -666,29 +666,32 @@ bool Grafo::isEuleriano() {
 }
 
 bool Grafo::isMultigrafo() {
-    vector<Aresta*> arestas; // vector
-    vector<bool> destinos = vector<bool>(nos.size(), false); // vector que guarda os destinos alcançados pelas arestas do nó atual
+    vector<Aresta *> arestas; // vector
+    vector<bool> destinos = vector<bool>(nos.size(),
+                                         false); // vector que guarda os destinos alcançados pelas arestas do nó atual
     int indiceDestino; // variável auxiliar que guarda o indice do nó de destino da aresta dentro do loop
     bool result = false; // resultado da verificação
 
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
         for (int j = 0; j < arestas.size(); j++) {
-            if (arestas[j]->getOrigem() == arestas[j]->getDestino())  return false; // multigrafo não tem laços
+            if (arestas[j]->getOrigem() == arestas[j]->getDestino()) return false; // multigrafo não tem laços
 
             indiceDestino = arestas[j]->getDestino();
 
-            if (destinos[indiceDestino])  result = true; // caso já haja uma aresta para este nó, é multigrafo
+            if (destinos[indiceDestino]) result = true; // caso já haja uma aresta para este nó, é multigrafo
             else destinos[indiceDestino] = true;
         }
-        fill(destinos.begin(), destinos.end(), false); // resetamos o vector destino após checarmos todas as arestas de um nó
+        fill(destinos.begin(), destinos.end(),
+             false); // resetamos o vector destino após checarmos todas as arestas de um nó
     }
     return result;
 }
 
 bool Grafo::isSimples() {
-    vector<bool> destinos = vector<bool>(nos.size(), false); // vector que guarda os destinos alcançados pelas arestas do nó atual
-    vector<Aresta*> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
+    vector<bool> destinos = vector<bool>(nos.size(),
+                                         false); // vector que guarda os destinos alcançados pelas arestas do nó atual
+    vector<Aresta *> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
     int indiceDestino; // variável auxiliar que guarda o indice do nó de destino da aresta dentro do loop
 
     for (int i = 0; i < nos.size(); i++) {
@@ -696,8 +699,9 @@ bool Grafo::isSimples() {
         for (int j = 0; j < arestas.size(); j++) {
             indiceDestino = arestas[j]->getDestino();
 
-            if (nos[i]->getId().compare(nos[indiceDestino]->getId()) == 0)  return false; // caso haja laços, não é grafo simples
-            if (destinos[indiceDestino])  return false; // caso haja arestas paralelas, não é grafo simples
+            if (nos[i]->getId().compare(nos[indiceDestino]->getId()) == 0)
+                return false; // caso haja laços, não é grafo simples
+            if (destinos[indiceDestino]) return false; // caso haja arestas paralelas, não é grafo simples
 
             destinos[indiceDestino] = true;
         }
@@ -727,9 +731,9 @@ int Grafo::componentesFortementeConexas() {
     vector<string> ids; // vector contendo todos os ids dos nós do grafo para criar o grafo transposto
     // vector que conterá todas as arestas do grafo para criar o grafo transposto
     // inicializado de tamanho 1 para que um SEGFAULT não seja gerado ao acessar arestas.end()
-    vector<Aresta*> arestasGeral;
+    vector<Aresta *> arestasGeral;
 
-    vector<Aresta*> arestas; // vector auxiliar que guarda as arestas do nó atual dentro do loop
+    vector<Aresta *> arestas; // vector auxiliar que guarda as arestas do nó atual dentro do loop
     for (int i = 0; i < nos.size(); i++) {
         ids.push_back(nos[i]->getId());
         arestas = *(nos[i]->getArestas());
@@ -737,7 +741,7 @@ int Grafo::componentesFortementeConexas() {
     }
 
     // alocar memória para o grafo pois talvez requeira uma memória considerável
-    Grafo* transposto = new Grafo(ids, arestasGeral);
+    Grafo *transposto = new Grafo(ids, arestasGeral);
 
     stack<int> pilha;
     vector<bool> visitados(nos.size(), false);
@@ -764,7 +768,7 @@ int Grafo::componentesFortementeConexas() {
         }
     }
 
-    delete(transposto); // desaloca a memória do grafo transposto
+    delete (transposto); // desaloca a memória do grafo transposto
 
     return componentes;
 }
@@ -773,8 +777,7 @@ void Grafo::showComponentesFortementeConexas() {
     if (isDigrafo) {
         cout << "Componentes fortemente conexas: \n";
         componentesFortementeConexas();
-    }
-    else {
+    } else {
         cout << "Componentes fortemente conexas so se aplicam em grafos direcionados!\n";
     }
 }
@@ -783,7 +786,7 @@ bool Grafo::isBipartido() {
     // vector que conterá as partições de cada nó
     // Os valores possíveis no vector são 3: SEM_PARTICAO, PARTICAO_A e PARTICAO_B
     vector<int> bipartido(nos.size(), SEM_PARTICAO);
-    vector<Aresta*> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
+    vector<Aresta *> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
     int indiceDestino;
 
     for (int i = 0; i < nos.size(); i++) {
@@ -795,16 +798,15 @@ bool Grafo::isBipartido() {
         for (int j = 0; j < arestas.size(); j++) {
             if (i == arestas[j]->getOrigem()) {
                 //Caso tenha laço, o mesmo nó não pode estar em duas partições
-                if (arestas[j]->getOrigem() == arestas[j]->getDestino())  return false;
+                if (arestas[j]->getOrigem() == arestas[j]->getDestino()) return false;
 
                 indiceDestino = arestas[j]->getDestino();
 
                 if (bipartido[indiceDestino] == SEM_PARTICAO) {
                     // caso o adjacente não tenha partição ainda, pomos ele na outra partição
-                    if (bipartido[i] == PARTICAO_A)  bipartido[indiceDestino] = PARTICAO_B;
-                    else  bipartido[indiceDestino] = PARTICAO_A;
-                }
-                else {
+                    if (bipartido[i] == PARTICAO_A) bipartido[indiceDestino] = PARTICAO_B;
+                    else bipartido[indiceDestino] = PARTICAO_A;
+                } else {
                     //Se o nó atual tiver um nó adjacente que esteja na mesma partição, o grafo não é bipartido
                     if (bipartido[i] == bipartido[indiceDestino]) return false;
                 }
@@ -822,20 +824,20 @@ void Grafo::complementar() {
 
     cout << "O grafo complementar eh G(V, E) onde: \n";
     cout << "V: { ";
-    for (int i = 0; i < nos.size(); i++){
-        if(i % 10 == 0) cout << endl; // imprimir 10 por linha
+    for (int i = 0; i < nos.size(); i++) {
+        if (i % 10 == 0) cout << endl; // imprimir 10 por linha
         cout << nos[i]->getId() << " ";
     }
     cout << "}\n\nE: {";
     int count = 0;
     //alocar no heap pois podem ser muitas arestas
-    Aresta* aux;
+    Aresta *aux;
     for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
-            if (i == j)  continue;
+            if (i == j) continue;
             aux = nos[i]->encontrarArestasComDestino(j);
             if (aux == NULL && (isDigrafo || j > i)) {
-                if(count % 10 == 0) cout << endl; // imprimir 10 por linha
+                if (count % 10 == 0) cout << endl; // imprimir 10 por linha
                 count++;
                 cout << "(" << nos[i]->getId() << ", " << nos[j]->getId() << ") ";
             }
@@ -847,16 +849,15 @@ void Grafo::complementar() {
 
 void Grafo::subGrafoInduzido(set<string> listaNo) {
     vector<int> nosInduzidos; // vector que conterá os índices dos nós listados
-    vector<Aresta*> arestasInduzidas; // vector que conterá as arestas do subgrafo induzido
-    Aresta* aresta; // vector auxiliar que conterá as arestas do nó dentro do loop
+    vector<Aresta *> arestasInduzidas; // vector que conterá as arestas do subgrafo induzido
+    Aresta *aresta; // vector auxiliar que conterá as arestas do nó dentro do loop
 
     set<string>::iterator it;
     int indice;
     for (it = listaNo.begin(); it != listaNo.end(); ++it) {
         if ((indice = getIndexNo(*it)) != -1) {
             nosInduzidos.push_back(indice);
-        }
-        else {
+        } else {
             printMensagemNoInexistente(*it);
             return;
         }
@@ -872,13 +873,14 @@ void Grafo::subGrafoInduzido(set<string> listaNo) {
 
     // string auxiliar para printar o resultado corretamente
     string result = "O subgrafo induzido resultante eh G(V,E) onde:\nV = { ";
-    for (int i = 0; i < nosInduzidos.size(); i++)  result += nos[nosInduzidos[i]]->getId() + ", ";
+    for (int i = 0; i < nosInduzidos.size(); i++) result += nos[nosInduzidos[i]]->getId() + ", ";
     result.erase(result.size() - 2, 1); // apagar última vírgula para mostrar corretamente
     result += "}\n";
     cout << result;
     result = "E = { ";
     for (int i = 0; i < arestasInduzidas.size(); i++) {
-        result += "(" + nos[arestasInduzidas[i]->getOrigem()]->getId() + " , " + nos[arestasInduzidas[i]->getDestino()]->getId();
+        result += "(" + nos[arestasInduzidas[i]->getOrigem()]->getId() + " , " +
+                  nos[arestasInduzidas[i]->getDestino()]->getId();
         if (isPonderado) result += ", " + arestasInduzidas[i]->getPeso();
         result += "), ";
     }
@@ -966,7 +968,9 @@ void Grafo::periferiaGrafo() {
 // vector pai guarda os pais dos nós
 // bool existe é uma variável auxiliar para imprimir a mensagem correta no método showArestasPonte()
 // algoritmo retirado de: http://www.geeksforgeeks.org/bridge-in-a-graph/
-void Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *descoberta, vector<int> *min, vector<int> *pai, bool *existe) {
+void
+Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *descoberta, vector<int> *min, vector<int> *pai,
+                       bool *existe) {
     // variável estática que determina o tempo de descoberta
     static int tempo = 0;
 
@@ -977,7 +981,7 @@ void Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *desc
     (*descoberta)[atual] = (*min)[atual] = ++tempo;
 
     // Percorrer todas as arestas do nó atual
-    vector<Aresta*> arestas = *(nos[atual]->getArestas());
+    vector<Aresta *> arestas = *(nos[atual]->getArestas());
     for (int i = 0; i < arestas.size(); i++) {
         int adjacente = arestas[i]->getDestino();
         // Caso o adjacente não tenha sido visitado
@@ -986,7 +990,7 @@ void Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *desc
             arestasPonteAux(adjacente, visitado, descoberta, min, pai, existe);
 
             // Checar se algum filho do adjacente tem conexão com u ou um ancestral de u
-            if ((*min)[adjacente] < (*min)[atual])  (*min)[atual] = (*min)[adjacente];
+            if ((*min)[adjacente] < (*min)[atual]) (*min)[atual] = (*min)[adjacente];
 
             // Se o vértice descoberto mais cedo alcançável da subárvore abaixo do adjacente
             // está abaixo do nó atual, a aresta em questão é ponte
@@ -999,12 +1003,11 @@ void Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *desc
 
             // Atualizar o valor min do nó atual para as chamadas recursivas
         else if (adjacente != (*pai)[atual])
-            if ((*descoberta)[adjacente] < (*min)[atual])  (*min)[atual] = (*descoberta)[adjacente];
+            if ((*descoberta)[adjacente] < (*min)[atual]) (*min)[atual] = (*descoberta)[adjacente];
     }
 }
 
-void Grafo::showArestasPonte()
-{
+void Grafo::showArestasPonte() {
     // Inicializar os vetores necessários para chamar o método auxiliar que descobre as arestas pontes
     vector<bool> visitado(nos.size(), false);
     vector<int> descoberta(nos.size());
@@ -1019,7 +1022,7 @@ void Grafo::showArestasPonte()
         if (!visitado[i])
             arestasPonteAux(i, &visitado, &descoberta, &min, &pai, &arestaPonteExiste);
 
-    if (!arestaPonteExiste)  cout << "Nao ha arestas ponte\n";
+    if (!arestaPonteExiste) cout << "Nao ha arestas ponte\n";
 }
 
 //método auxiliar que encontra os nós de articulação. O algoritmo faz uma busca em profundidade no grafo e, a partir da árvore criada,
@@ -1032,7 +1035,9 @@ void Grafo::showArestasPonte()
 // vector pai guarda os pais dos nós
 // bool existe é uma variável auxiliar para imprimir a mensagem correta no método showNoArticulacao()
 // algoritmo retirado de: http://www.geeksforgeeks.org/articulation-points-or-cut-vertices-in-a-graph/
-void Grafo::noArticulacaoAux(int atual, vector<bool> *visitado, vector<int> *descoberta, vector<int> *min, vector<int> *pai, bool *existe) {
+void
+Grafo::noArticulacaoAux(int atual, vector<bool> *visitado, vector<int> *descoberta, vector<int> *min, vector<int> *pai,
+                        bool *existe) {
     // variável estática que determina o tempo de descoberta
     static int tempo = 0;
 
@@ -1046,7 +1051,7 @@ void Grafo::noArticulacaoAux(int atual, vector<bool> *visitado, vector<int> *des
     (*descoberta)[atual] = (*min)[atual] = ++tempo;
 
     // Percorrer todas as arestas do nó atual
-    vector<Aresta*> arestas = *(nos[atual]->getArestas());
+    vector<Aresta *> arestas = *(nos[atual]->getArestas());
     for (int i = 0; i < arestas.size(); i++) {
         int adjacente = arestas[i]->getDestino();
 
@@ -1058,7 +1063,7 @@ void Grafo::noArticulacaoAux(int atual, vector<bool> *visitado, vector<int> *des
             noArticulacaoAux(adjacente, visitado, descoberta, min, pai, existe);
 
             // Checa se um nó da subávore com raiz adjacente tem conexão com o nó atual ou algum ancestral do nó atual
-            if ((*min)[adjacente] < (*min)[atual])  (*min)[atual] = (*min)[adjacente];
+            if ((*min)[adjacente] < (*min)[atual]) (*min)[atual] = (*min)[adjacente];
 
             // O nó atual é de articulação nos seguintes casos
 
@@ -1079,7 +1084,7 @@ void Grafo::noArticulacaoAux(int atual, vector<bool> *visitado, vector<int> *des
 
             // Atualiza a alcançabilidade do nó atual para as demais chamadas recursivas
         else if (adjacente != (*pai)[atual])
-            if ((*descoberta)[adjacente] < (*min)[atual])  (*min)[atual] = (*descoberta)[adjacente];
+            if ((*descoberta)[adjacente] < (*min)[atual]) (*min)[atual] = (*descoberta)[adjacente];
     }
 }
 
@@ -1088,7 +1093,8 @@ void Grafo::showNoArticulacao() {
     vector<bool> visitado(nos.size(), false);
     vector<int> descoberta(nos.size());
     vector<int> min(nos.size());
-    vector<int> pai(nos.size(), -1); // valor inicializado com -1 para ser usado dentro do método auxiliar para detectar a raiz da árvore gerada pela busca em profundidade
+    vector<int> pai(nos.size(),
+                    -1); // valor inicializado com -1 para ser usado dentro do método auxiliar para detectar a raiz da árvore gerada pela busca em profundidade
 
     cout << "Nos de articulacao:\n";
     bool noArticulacaoExiste = false;
@@ -1098,7 +1104,7 @@ void Grafo::showNoArticulacao() {
         if (!visitado[i])
             noArticulacaoAux(i, &visitado, &descoberta, &min, &pai, &noArticulacaoExiste);
 
-    if (!noArticulacaoExiste)  cout << "Nao ha nos de articulacao\n";
+    if (!noArticulacaoExiste) cout << "Nao ha nos de articulacao\n";
 }
 
 vector<int> Grafo::excentricidade() {
@@ -1107,7 +1113,8 @@ vector<int> Grafo::excentricidade() {
     for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
             // pega o maior caminho mínimo válido para cada no
-            if (matrizDistancia[i][j] != INT_MAX && matrizDistancia[i][j] > result[i])  result[i] = matrizDistancia[i][j];
+            if (matrizDistancia[i][j] != INT_MAX && matrizDistancia[i][j] > result[i])
+                result[i] = matrizDistancia[i][j];
         }
     }
     return result;
@@ -1115,11 +1122,12 @@ vector<int> Grafo::excentricidade() {
 
 
 int Grafo::componentesConexas() {
-    vector<bool> visitados(nos.size(), false);  // vector que conterá os status dos nós percorridos na busca em profundidade
+    vector<bool> visitados(nos.size(),
+                           false);  // vector que conterá os status dos nós percorridos na busca em profundidade
     int componentes = 0;
 
     for (int i = 0; i < nos.size(); i++) {
-        if (visitados[i])  continue;
+        if (visitados[i]) continue;
         // caso encontremos nós ainda não visitados após a busca em profundidade de outros nós,
         // quer dizer eles não estão conectados e, portanto, constituem uma nova componente conexa
         componentes++;
@@ -1130,20 +1138,16 @@ int Grafo::componentesConexas() {
 }
 
 void Grafo::printGrafo() {
-    vector<Aresta*> arestas;
+    vector<Aresta *> arestas;
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
         cout << "No " << nos[i]->getId() << ":  ";
         for (int j = 0; j < arestas.size(); j++) {
-            // só devem ser imprimidas as arestas com destino maior ou igual à origem ou todas, quando é digrafo.
-            // Isso faz com que arestas não sejam duplicadas em grafos não direcinados
-            if(isDigrafo || arestas[j]->getDestino() > i){
-                if(j % 10 == 0) cout << "\n"; // imprimir 10 por linha
-                cout << "(" << nos[i]->getId() << ", " << nos[arestas[j]->getDestino()]->getId();
-                // caso seja ponderado, é necessário mostrar os pesos
-                if (isPonderado)  cout << ", " << arestas[j]->getPeso();
-                cout << ") ";
-            }
+            if (j % 10 == 0) cout << "\n"; // imprimir 10 por linha
+            cout << "(" << nos[i]->getId() << ", " << nos[arestas[j]->getDestino()]->getId();
+            // caso seja ponderado, é necessário mostrar os pesos
+            if (isPonderado) cout << ", " << arestas[j]->getPeso();
+            cout << ") ";
         }
         cout << endl;
     }
@@ -1153,8 +1157,7 @@ void Grafo::printGrafo() {
 struct SetDisjunto {
     vector<int> pai, rank;
 
-    SetDisjunto(int n)
-    {
+    SetDisjunto(int n) {
         // Alocar memória e inicializar os vetores
         pai = vector<int>(n + 1);
         rank = vector<int>(n + 1);
@@ -1179,8 +1182,8 @@ struct SetDisjunto {
         x = acharPai(x), y = acharPai(y);
 
         // Faz com que a árvore de menor rank seja subárvore da de maior rank
-        if (rank[x] > rank[y])  pai[y] = x;
-        else  pai[x] = y;
+        if (rank[x] > rank[y]) pai[y] = x;
+        else pai[x] = y;
 
         if (rank[x] == rank[y])
             rank[y]++;
@@ -1188,7 +1191,7 @@ struct SetDisjunto {
 };
 
 struct comparadorAresta { // usado para ordenar as arestas baseadas no peso (usado no kruskalAux)
-    inline bool operator() (Aresta* aresta1, Aresta* aresta2) {
+    inline bool operator()(Aresta *aresta1, Aresta *aresta2) {
         return aresta1->getPeso() < aresta2->getPeso();
     }
 };
@@ -1197,7 +1200,7 @@ struct comparadorAresta { // usado para ordenar as arestas baseadas no peso (usa
 int Grafo::kruskalAux() {
     int pesoTotal = 0;
 
-    vector<Aresta*> arestasGeral; // vector que conterá todas as arestas do grafo
+    vector<Aresta *> arestasGeral; // vector que conterá todas as arestas do grafo
     for (int i = 0; i < nos.size(); i++)
         arestasGeral.insert(arestasGeral.end(), nos[i]->getArestas()->begin(), nos[i]->getArestas()->end());
 
@@ -1236,9 +1239,11 @@ void Grafo::showArvoreGeradoraMinima() {
 #pragma endregion
 
 #pragma region Destrutor
+
 Grafo::~Grafo() {
     for (int i = 0; i < nos.size(); i++) {
-        delete(nos[i]);
+        delete (nos[i]);
     }
 }
+
 #pragma endregion
