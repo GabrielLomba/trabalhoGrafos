@@ -130,7 +130,16 @@ void showEditMenu() {
                 string idOrigem = getStringInput("ID do no de origem: ");
                 string idDestino = getStringInput("ID do no de destino: ");
                 int peso = 1; // peso é setado para 1 por padrão para grafos não ponderados. Caso seja ponderado, devemos lê-lo
-                if(grafo->ehPonderado()) peso = atoi(getStringInput("Peso da aresta: ").c_str());
+                if(grafo->ehPonderado()){
+                    string pesoInput = getStringInput("Peso da aresta: ");
+                    peso = atoi(pesoInput.c_str());
+                    if(peso == 0 && pesoInput != "0"){
+                        // quando peso é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
+                        // da string para o inteiro. Neste caso, paramos
+                        cout << "Peso invalido!\n";
+                        break;
+                    }
+                }
                 grafo->inserirAresta(idOrigem, idDestino, peso);
             }
                 break;
