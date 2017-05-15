@@ -18,7 +18,7 @@ Grafo::Grafo(string nomeArquivoEntrada, string nomeArquivoSaida) {
 }
 
 //construtor auxiliar para gerar grafo transposto (usado para calcular as componentes fortemente conexas)
-Grafo::Grafo(vector<string> ids, vector<Aresta *> arestas) {
+Grafo::Grafo(vector<string> ids, vector<tuple<int, int, int>> arestas) {
     isDigrafo = true;
 
     for (int i = 0; i < ids.size(); i++) {
@@ -27,8 +27,7 @@ Grafo::Grafo(vector<string> ids, vector<Aresta *> arestas) {
 
     for (int i = 0; i < arestas.size(); i++) {
         // como é transposto, inserir as arestas invertidas
-        nos[arestas[i]->getDestino()]->inserirAresta(
-                new Aresta(arestas[i]->getDestino(), arestas[i]->getOrigem(), arestas[i]->getPeso()));
+        nos[get<2>(arestas[i])]->inserirAresta(get<1>(arestas[i]), get<2>(arestas[i]));
     }
 }
 
@@ -50,7 +49,7 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
     unsigned int numNos = (unsigned int) atoi(auxStr.c_str());
 
     nos = vector<No *>(numNos, NULL);
-    vector<Aresta *> arestas;
+    vector<tuple<int, int, int>> arestas;
 
     map<pair<int, int>, bool> arestaMap;
     map<string, int>::iterator it;
@@ -105,15 +104,13 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
             indiceDestino = it->second;
         }
 
-        Aresta *aresta = new Aresta(indiceOrigem, indiceDestino, peso);
-
         if (!isDigrafo) { // caso já seja digrafo, não há necessidade de checar novamente
             //caso a aresta inversa já foi inserida, o iterator não terá chegado até o final. Portanto, será digrafo
             isDigrafo = arestaMap.find(make_pair(indiceDestino, indiceOrigem)) != arestaMap.end();
         }
 
         arestaMap[make_pair(indiceOrigem, indiceDestino)] = true;
-        arestas.push_back(aresta);
+        arestas.push_back(make_tuple(indiceOrigem, indiceDestino, peso));
     }
 
     // devemos checar por nós sem arestas e atribuí-los com um id default
@@ -125,14 +122,14 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
 
     No *aux;
     for (int i = 0; i < arestas.size(); i++) {
-        aux = nos[arestas[i]->getOrigem()];
-        aux->inserirAresta(arestas[i]);
+        aux = nos[get<0>(arestas[i])];
+        aux->inserirAresta(get<1>(arestas[i]), get<2>(arestas[i]));
 
         // caso não seja digrafo e não seja um laço, devemos adicionar uma aresta no nó destino também
-        if (!isDigrafo && arestas[i]->getOrigem() != arestas[i]->getDestino()) {
-            aux = nos[arestas[i]->getDestino()];
+        if (!isDigrafo && get<0>(arestas[i]) != get<1>(arestas[i])) {
+            aux = nos[get<1>(arestas[i])];
             // invertemos a ordem para facilitar a busca posteriormente
-            aux->inserirAresta(new Aresta(arestas[i]->getDestino(), arestas[i]->getOrigem(), arestas[i]->getPeso()));
+            aux->inserirAresta(get<0>(arestas[i]), get<2>(arestas[i]));
         }
     }
 }
@@ -147,16 +144,18 @@ void Grafo::salvarArquivo() {
 
     infile << nos.size() << endl;
 
-    vector<Aresta *> arestas;
+    unordered_map<int, int> arestas;
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
-        for (int j = 0; j < arestas.size(); j++) {
-            if (isDigrafo || arestas[j]->getDestino() >= i) {
+        for (auto aresta : arestas) {
+            if (isDigrafo || aresta.first >= i) {
                 // caso seja digrafo, todas as arestas devem ser escritas. Caso contrário,
                 // somente as arestas que se relacionam com nós maiores devem ser adicionadas pois
                 // uma das duas arestas geradas em grafos não direcionados já foi escrita
-                infile << nos[arestas[j]->getOrigem()]->getId() << " " << nos[arestas[j]->getDestino()]->getId() << " "
-                       << arestas[j]->getPeso() << endl;
+                infile << nos[i]->getId() << " " << nos[aresta.first]->getId();
+                // caso seja ponderado, salvamos o peso também
+                if (isPonderado) cout << " " << aresta.second;
+                cout << endl;
             }
         }
     }
@@ -180,7 +179,7 @@ void Grafo::inserirNo(string id) {
 
     No *no = new No(id);
     nos.push_back(no);
-    idMap[id] = nos.size() -1;
+    idMap[id] = nos.size() - 1;
     cout << "No " << id << " inserido com sucesso!\n";
 }
 
@@ -196,6 +195,8 @@ void Grafo::excluirNo(string id) {
     idMap.erase(id); // apagar a chave do id passado do map de IDs
     for (int i = 0; i < nos.size(); i++) {
         nos[i]->removerAresta(indice); // remover todas as arestas que tinham o nó excluído como destino
+        nos[i]->atualizarIndices(indice); // como as arestas mantém os índices dos nós destino, precisamos atualizá-los
+        idMap[nos[i]->getId()] = i; // também é necessário atualizar o map de ids
     }
 
     cout << "O no " << id << " e suas arestas foram removidos com sucesso!\n";
@@ -284,13 +285,15 @@ void Grafo::vizinhancaAberta(string id) {
     }
 
     // já que não lidamos com multigrafos, podemos simplesmente imprimir todas as arestas do nó
-    vector<Aresta *> arestasAux = *(nos[indice]->getArestas());
-    if(arestasAux.size() == 0){
+    unordered_map<int, int> arestas = *(nos[indice]->getArestas());
+    if (arestas.size() == 0) {
         cout << "Nao ha vizinhos\n";
     } else {
-        for (int i = 0; i < arestasAux.size(); i++) {
-            if(i != 0 && i % 10 == 0) cout << "\n"; // imprimir 10 por linha
-            cout << nos[arestasAux[i]->getDestino()]->getId() << " ";
+        int i = 0;
+        for (auto aresta : arestas) {
+            if (i != 0 && i % 10 == 0) cout << "\n"; // imprimir 10 por linha
+            cout << nos[aresta.first]->getId() << " ";
+            i++;
         }
     }
 
@@ -305,12 +308,12 @@ void Grafo::vizinhancaFechada(string id) {
     }
 
     // já que não lidamos com multigrafos, podemos simplesmente imprimir todas as arestas do nó
-    vector<Aresta *> arestasAux = *(nos[indice]->getArestas());
-    if(arestasAux.size() == 0){
+    unordered_map<int, int> arestasAux = *(nos[indice]->getArestas());
+    if (arestasAux.size() == 0) {
         cout << "Nao ha vizinhos\n";
     } else {
         // caso não haja laço neste nó, devemos imprimí-lo
-        if(nos[indice]->encontrarArestasComDestino(indice) == NULL)  cout << nos[indice]->getId() << " ";
+        if (nos[indice]->encontrarArestasComDestino(indice) == NULL) cout << nos[indice]->getId() << " ";
         vizinhancaAberta(id);
     }
 }
@@ -335,18 +338,16 @@ void Grafo::inserirAresta(string idOrigem, string idDestino, int peso) {
         if ((indiceDestino = adicionarNoInexistente(idDestino)) == -1) return;
     }
 
-    Aresta *aresta = nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino);
-    if (aresta != NULL) {
+    if (nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino) != NULL) {
         cout << "Aresta ja existe no grafo!\n";
         return;
     }
 
-    aresta = new Aresta(indiceOrigem, indiceDestino, peso);
-    nos[indiceOrigem]->inserirAresta(aresta);
+    nos[indiceOrigem]->inserirAresta(indiceDestino, peso);
     // caso não seja digrafo e não seja um laço, devemos adicionar uma aresta no nó destino também
     if (!isDigrafo && indiceOrigem != indiceDestino) {
         // a ordem origem - destino é invertida para facilitar comparações posteriormente
-        nos[indiceDestino]->inserirAresta(new Aresta(indiceDestino, indiceOrigem, peso));
+        nos[indiceDestino]->inserirAresta(indiceOrigem, peso);
     }
 
     cout << "\nAresta inserida com sucesso!\n";
@@ -367,9 +368,7 @@ void Grafo::excluirAresta(string idOrigem, string idDestino) {
         return;
     }
 
-    Aresta *arestaResult = nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino);
-
-    if (arestaResult == NULL) {
+    if (nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino) == NULL) {
         cout << "Aresta inexistente no grafo!\n";
     } else {
         // quando é digrafo e há somente uma aresta, podemos removê-la
@@ -398,16 +397,14 @@ vector<int> Grafo::dijkstraAux(int indice) {
         visitados[u] = true;
 
         No *pont = nos[u];
-        vector<Aresta *> arestas = *(pont->getArestas());
+        unordered_map<int, int> arestas = *(pont->getArestas());
 
-        for (int j = 0; j < arestas.size(); j++) {
-            int auxIndice = arestas[j]->getDestino();
-
-            if (!visitados[auxIndice] && distancias[u] != INT_MAX) {
+        for (auto aresta : arestas) {
+            if (!visitados[aresta.first] && distancias[u] != INT_MAX) {
                 // Altera a distância se o adjacente não foi visitado e se há uma aresta que, se
                 // somada à atual distâncias, seja menor que o valor da distancia atual para o adjacente.
-                if (distancias[auxIndice] > distancias[u] + arestas[j]->getPeso())
-                    distancias[auxIndice] = distancias[u] + arestas[j]->getPeso();
+                if (distancias[aresta.first] > distancias[u] + aresta.second)
+                    distancias[aresta.first] = distancias[u] + aresta.second;
 
             }
         }
@@ -432,7 +429,7 @@ int Grafo::dijkstra(string idOrigem, string idDestino) {
 }
 
 vector<vector<int>> Grafo::floydAux() {
-    Aresta *arestaAux; // auxiliar que conterá a aresta do nó i ao j na primeira fase do Floyd
+    pair<const int, int> *arestaAux; // auxiliar que conterá a aresta do nó i ao j na primeira fase do Floyd
     // matriz que será preenchida pelo algoritmo de Floyd
     vector<vector<int>> matrizDistancia(nos.size(), vector<int>(nos.size()));
 
@@ -444,7 +441,7 @@ vector<vector<int>> Grafo::floydAux() {
                 arestaAux = nos[i]->encontrarArestasComDestino(j);
                 if (arestaAux != NULL) {
                     //caso seja multigrafo, pegar a aresta de menor peso
-                    matrizDistancia[i][j] = arestaAux->getPeso();
+                    matrizDistancia[i][j] = arestaAux->second;
                 } else {
                     //caso não haja arestas entre i e j, o caminho entre eles é infinito
                     matrizDistancia[i][j] = INT_MAX;
@@ -518,13 +515,12 @@ int Grafo::indiceMenorDistancia(vector<int> distancias, vector<bool> visitados) 
 void Grafo::buscaEmProfundidadeAux(int indiceOrigem, vector<bool> *visitado, bool print) {
     (*visitado)[indiceOrigem] = true;
     if (print) cout << nos[indiceOrigem]->getId() << " ";
-    vector<Aresta *> arestas = *(nos[indiceOrigem]->getArestas());
-    for (int i = 0; i < arestas.size(); i++) {
-        int indiceDestino = arestas[i]->getDestino();
+    unordered_map<int, int> arestas = *(nos[indiceOrigem]->getArestas());
+    for (auto aresta : arestas) {
         // caso o nó já tenha sido visitado, podemos continuar pois as arestas dele já estão sendo iteradas
         // caso contrário, devemos inciar a busca nele
-        if (!(*visitado)[indiceDestino])
-            buscaEmProfundidadeAux(indiceDestino, visitado, print);
+        if (!(*visitado)[aresta.first])
+            buscaEmProfundidadeAux(aresta.first, visitado, print);
     }
 }
 
@@ -560,7 +556,7 @@ void Grafo::buscaEmLargura(string id) {
     queue<int> filaVisitados;
     vector<bool> visitado(nos.size(), false);
     int indice;
-    vector<Aresta *> arestasAux;
+    unordered_map<int, int> arestas;
 
     cout << "Busca em largura \n";
     // setar condições do loop para começar no indiceInicio passado
@@ -573,20 +569,19 @@ void Grafo::buscaEmLargura(string id) {
             filaVisitados.pop();
 
             // Com o índice atual, podemos realizar a busca nas arestas
-            arestasAux = *(nos[indice]->getArestas());
+            arestas = *(nos[indice]->getArestas());
 
             if (!visitado[indice]) {
                 cout << nos[indice]->getId() << " ";
                 visitado[indice] = true;
             }
 
-            for (int k = 0; k < arestasAux.size(); k++) {
-                int destino = arestasAux[k]->getDestino();
-                if (!visitado[destino]) {
+            for (auto aresta : arestas) {
+                if (!visitado[aresta.first]) {
                     // À medida que são encontrados nós ainda não visitados, eles são imprimidos e adicionados à fila
-                    cout << nos[destino]->getId() << " ";
-                    visitado[destino] = true;
-                    filaVisitados.push(destino);
+                    cout << nos[aresta.first]->getId() << " ";
+                    visitado[aresta.first] = true;
+                    filaVisitados.push(aresta.first);
                 }
             }
         }
@@ -626,17 +621,15 @@ bool Grafo::isKRegular(int k) {
 
 bool Grafo::isCompleto() {
     vector<bool> destinos = vector<bool>(nos.size(), false);
-    vector<Aresta *> arestas;
-    int indexDestino;
+    unordered_map<int, int> arestas;
 
     for (int i = 0; i < nos.size(); i++) {
         if (nos[i]->getGrau() != nos.size() - 1) return false;  // todos os nós precisam se conectar a n-1 nós
         arestas = *(nos[i]->getArestas());
-        for (int j = 0; j < arestas.size(); j++) {
-            indexDestino = arestas[j]->getDestino();
-            if (destinos[indexDestino]) return false; // caso haja aresta paralela, não é completo
-            if (i == indexDestino) return false; // caso haja laço, não é completo
-            destinos[indexDestino] = true;
+        for (auto aresta : arestas) {
+            if (destinos[aresta.first]) return false; // caso haja aresta paralela, não é completo
+            if (i == aresta.first) return false; // caso haja laço, não é completo
+            destinos[aresta.first] = true;
         }
         fill(destinos.begin(), destinos.end(), false);
     }
@@ -672,21 +665,18 @@ bool Grafo::isEuleriano() {
 }
 
 bool Grafo::isMultigrafo() {
-    vector<Aresta *> arestas; // vector
+    unordered_map<int, int> arestas; // vector
     vector<bool> destinos = vector<bool>(nos.size(),
                                          false); // vector que guarda os destinos alcançados pelas arestas do nó atual
-    int indiceDestino; // variável auxiliar que guarda o indice do nó de destino da aresta dentro do loop
     bool result = false; // resultado da verificação
 
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
-        for (int j = 0; j < arestas.size(); j++) {
-            if (arestas[j]->getOrigem() == arestas[j]->getDestino()) return false; // multigrafo não tem laços
+        for (auto aresta : arestas) {
+            if (i == aresta.first) return false; // multigrafo não tem laços
 
-            indiceDestino = arestas[j]->getDestino();
-
-            if (destinos[indiceDestino]) result = true; // caso já haja uma aresta para este nó, é multigrafo
-            else destinos[indiceDestino] = true;
+            if (destinos[aresta.first]) result = true; // caso já haja uma aresta para este nó, é multigrafo
+            else destinos[aresta.first] = true;
         }
         fill(destinos.begin(), destinos.end(),
              false); // resetamos o vector destino após checarmos todas as arestas de um nó
@@ -697,19 +687,16 @@ bool Grafo::isMultigrafo() {
 bool Grafo::isSimples() {
     vector<bool> destinos = vector<bool>(nos.size(),
                                          false); // vector que guarda os destinos alcançados pelas arestas do nó atual
-    vector<Aresta *> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
-    int indiceDestino; // variável auxiliar que guarda o indice do nó de destino da aresta dentro do loop
+    unordered_map<int, int> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
 
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
-        for (int j = 0; j < arestas.size(); j++) {
-            indiceDestino = arestas[j]->getDestino();
-
-            if (nos[i]->getId().compare(nos[indiceDestino]->getId()) == 0)
+        for (auto aresta : arestas) {
+            if (nos[i]->getId().compare(nos[aresta.first]->getId()) == 0)
                 return false; // caso haja laços, não é grafo simples
-            if (destinos[indiceDestino]) return false; // caso haja arestas paralelas, não é grafo simples
+            if (destinos[aresta.first]) return false; // caso haja arestas paralelas, não é grafo simples
 
-            destinos[indiceDestino] = true;
+            destinos[aresta.first] = true;
         }
         fill(destinos.begin(), destinos.end(), false);
     }
@@ -720,13 +707,13 @@ bool Grafo::isSimples() {
 void Grafo::ordemBuscaProfundidade(int indice, vector<bool> *visitado, stack<int> &pilha) {
     (*visitado)[indice] = true;
 
+    unordered_map<int, int> arestas = *(nos[indice]->getArestas());
     // Chamar recursivo para todas as arestas
-    for (int i = 0; i < (*(nos[indice]->getArestas())).size(); i++) {
-        int indiceDestino = (*(nos[i]->getArestas()))[i]->getDestino();
+    for (auto aresta : arestas) {
         // caso o nó já tenha sido visitado, podemos continuar pois as arestas dele já estão sendo iteradas
         // caso contrário, devemos chamar a função recursivamente nele
-        if (!(*visitado)[indiceDestino])
-            ordemBuscaProfundidade(indiceDestino, visitado, pilha);
+        if (!(*visitado)[aresta.first])
+            ordemBuscaProfundidade(aresta.first, visitado, pilha);
     }
 
     // Pomos na pilha a ordem dos vérticas já processados
@@ -737,13 +724,13 @@ int Grafo::componentesFortementeConexas() {
     vector<string> ids; // vector contendo todos os ids dos nós do grafo para criar o grafo transposto
     // vector que conterá todas as arestas do grafo para criar o grafo transposto
     // inicializado de tamanho 1 para que um SEGFAULT não seja gerado ao acessar arestas.end()
-    vector<Aresta *> arestasGeral;
+    vector<tuple<int, int, int>> arestasGeral;
 
-    vector<Aresta *> arestas; // vector auxiliar que guarda as arestas do nó atual dentro do loop
+    unordered_map<int, int> arestas; // vector auxiliar que guarda as arestas do nó atual dentro do loop
     for (int i = 0; i < nos.size(); i++) {
         ids.push_back(nos[i]->getId());
         arestas = *(nos[i]->getArestas());
-        arestasGeral.insert(arestasGeral.end(), arestas.begin(), arestas.end());
+        for(auto aresta : arestas)  arestasGeral.insert(arestasGeral.end(), make_tuple(i, aresta.first, aresta.second));
     }
 
     // alocar memória para o grafo pois talvez requeira uma memória considerável
@@ -792,8 +779,7 @@ bool Grafo::isBipartido() {
     // vector que conterá as partições de cada nó
     // Os valores possíveis no vector são 3: SEM_PARTICAO, PARTICAO_A e PARTICAO_B
     vector<int> bipartido(nos.size(), SEM_PARTICAO);
-    vector<Aresta *> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
-    int indiceDestino;
+    unordered_map<int, int> arestas; // vector auxiliar para receber as arestas de cada nó dentro do loop
 
     for (int i = 0; i < nos.size(); i++) {
         // caso não tenha partição, pomos o nó na partição A
@@ -801,21 +787,17 @@ bool Grafo::isBipartido() {
 
         arestas = *(nos[i]->getArestas());
 
-        for (int j = 0; j < arestas.size(); j++) {
-            if (i == arestas[j]->getOrigem()) {
-                //Caso tenha laço, o mesmo nó não pode estar em duas partições
-                if (arestas[j]->getOrigem() == arestas[j]->getDestino()) return false;
+        for (auto aresta : arestas) {
+            //Caso tenha laço, o mesmo nó não pode estar em duas partições
+            if (i == aresta.first) return false;
 
-                indiceDestino = arestas[j]->getDestino();
-
-                if (bipartido[indiceDestino] == SEM_PARTICAO) {
-                    // caso o adjacente não tenha partição ainda, pomos ele na outra partição
-                    if (bipartido[i] == PARTICAO_A) bipartido[indiceDestino] = PARTICAO_B;
-                    else bipartido[indiceDestino] = PARTICAO_A;
-                } else {
-                    //Se o nó atual tiver um nó adjacente que esteja na mesma partição, o grafo não é bipartido
-                    if (bipartido[i] == bipartido[indiceDestino]) return false;
-                }
+            if (bipartido[aresta.first] == SEM_PARTICAO) {
+                // caso o adjacente não tenha partição ainda, pomos ele na outra partição
+                if (bipartido[i] == PARTICAO_A) bipartido[aresta.first] = PARTICAO_B;
+                else bipartido[aresta.first] = PARTICAO_A;
+            } else {
+                //Se o nó atual tiver um nó adjacente que esteja na mesma partição, o grafo não é bipartido
+                if (bipartido[i] == bipartido[aresta.first]) return false;
             }
         }
     }
@@ -836,13 +818,11 @@ void Grafo::complementar() {
     }
     cout << "}\n\nE: {";
     int count = 0;
-    //alocar no heap pois podem ser muitas arestas
-    Aresta *aux;
+
     for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
             if (i == j) continue;
-            aux = nos[i]->encontrarArestasComDestino(j);
-            if (aux == NULL && (isDigrafo || j > i)) {
+            if (nos[i]->encontrarArestasComDestino(j) == NULL && (isDigrafo || j > i)) {
                 if (count % 10 == 0) cout << endl; // imprimir 10 por linha
                 count++;
                 cout << "(" << nos[i]->getId() << ", " << nos[j]->getId() << ") ";
@@ -855,8 +835,8 @@ void Grafo::complementar() {
 
 void Grafo::subGrafoInduzido(set<string> listaNo) {
     vector<int> nosInduzidos; // vector que conterá os índices dos nós listados
-    vector<Aresta *> arestasInduzidas; // vector que conterá as arestas do subgrafo induzido
-    Aresta *aresta; // vector auxiliar que conterá as arestas do nó dentro do loop
+    vector<tuple<int, int, int>> arestasInduzidas; // vector que conterá as arestas do subgrafo induzido
+    pair<const int, int> *aresta; // vector auxiliar que conterá as arestas do nó dentro do loop
 
     set<string>::iterator it;
     int indice;
@@ -873,26 +853,27 @@ void Grafo::subGrafoInduzido(set<string> listaNo) {
     for (int i = 0; i < nosInduzidos.size(); i++) {
         for (int j = 0; j < nosInduzidos.size(); j++) {
             aresta = nos[nosInduzidos[i]]->encontrarArestasComDestino(nosInduzidos[j]);
-            if (aresta != NULL) arestasInduzidas.push_back(aresta);
+            if (aresta != NULL) arestasInduzidas.push_back(make_tuple(nosInduzidos[i], nosInduzidos[j], aresta->second));
         }
     }
 
-    // string auxiliar para printar o resultado corretamente
-    string result = "O subgrafo induzido resultante eh G(V,E) onde:\nV = { ";
-    for (int i = 0; i < nosInduzidos.size(); i++) result += nos[nosInduzidos[i]]->getId() + ", ";
-    result.erase(result.size() - 2, 1); // apagar última vírgula para mostrar corretamente
-    result += "}\n";
-    cout << result;
-    result = "E = { ";
-    for (int i = 0; i < arestasInduzidas.size(); i++) {
-        result += "(" + nos[arestasInduzidas[i]->getOrigem()]->getId() + " , " +
-                  nos[arestasInduzidas[i]->getDestino()]->getId();
-        if (isPonderado) result += ", " + arestasInduzidas[i]->getPeso();
-        result += "), ";
+    cout << "\nO subgrafo induzido resultante eh G(V,E) onde:\nV = { ";
+    for (int i = 0; i < nosInduzidos.size(); i++){
+        if(i != 0 && i % 10 == 0)  cout << "\n"; // imprimir 10 por linha
+        cout << nos[nosInduzidos[i]]->getId() + " ";
     }
-    result.erase(result.size() - 2, 1); // apagar última vírgula para mostrar corretamente
-    result += "}\n";
-    cout << result;
+
+    cout << "}\nE = { ";
+
+    for (int i = 0; i < arestasInduzidas.size(); i++) {
+        if(i != 0 && i % 10 == 0)  cout << "\n"; // imprimir 10 por linha
+        cout << "(" + nos[get<0>(arestasInduzidas[i])]->getId() + " , " +
+                  nos[get<1>(arestasInduzidas[i])]->getId();
+        if (isPonderado) cout << ", " + get<2>(arestasInduzidas[i]);
+        cout <<  ") ";
+    }
+
+    cout << "}\n";
 }
 
 void Grafo::sequenciaDeGraus() {
@@ -987,9 +968,9 @@ Grafo::arestasPonteAux(int atual, vector<bool> *visitado, vector<int> *descobert
     (*descoberta)[atual] = (*min)[atual] = ++tempo;
 
     // Percorrer todas as arestas do nó atual
-    vector<Aresta *> arestas = *(nos[atual]->getArestas());
-    for (int i = 0; i < arestas.size(); i++) {
-        int adjacente = arestas[i]->getDestino();
+    unordered_map<int, int> arestas = *(nos[atual]->getArestas());
+    for (auto aresta : arestas) {
+        int adjacente = aresta.first;
         // Caso o adjacente não tenha sido visitado
         if (!(*visitado)[adjacente]) {
             (*pai)[adjacente] = atual;
@@ -1057,9 +1038,9 @@ Grafo::noArticulacaoAux(int atual, vector<bool> *visitado, vector<int> *descober
     (*descoberta)[atual] = (*min)[atual] = ++tempo;
 
     // Percorrer todas as arestas do nó atual
-    vector<Aresta *> arestas = *(nos[atual]->getArestas());
-    for (int i = 0; i < arestas.size(); i++) {
-        int adjacente = arestas[i]->getDestino();
+    unordered_map<int, int> arestas = *(nos[atual]->getArestas());
+    for (auto aresta : arestas) {
+        int adjacente = aresta.first;
 
         // Se adjacente ainda não foi visitado, então setá-lo para filho do nó atual
         // na árvore da busca em profundidade e fazer uma chamada recursiva nele
@@ -1144,20 +1125,23 @@ int Grafo::componentesConexas() {
 }
 
 void Grafo::printGrafo() {
-    vector<Aresta *> arestas;
+    unordered_map<int, int> arestas;
     for (int i = 0; i < nos.size(); i++) {
         arestas = *(nos[i]->getArestas());
         cout << "No " << nos[i]->getId() << ":  ";
-        for (int j = 0; j < arestas.size(); j++) {
+
+        int lineCount = 0;
+        for (auto aresta : arestas) {
             if (isPonderado) {
                 // caso seja ponderado, é necessário mostrar os pesos
-                if (j != 0 && j % 10 == 0) cout << "\n"; // imprimir 10 por linha
-                cout << "(" << nos[arestas[j]->getDestino()]->getId() << ", " << arestas[j]->getPeso() << ") ";
+                if (lineCount != 0 && lineCount % 10 == 0) cout << "\n"; // imprimir 10 por linha
+                cout << "(" << nos[aresta.first]->getId() << ", " << aresta.second << ") ";
             } else {
                 // caso contrário, somente mostrar os destinos das arestas
-                if (j != 0 && j % 20 == 0) cout << "\n"; // imprimir 10 por linha
-                cout << nos[arestas[j]->getDestino()]->getId() << " ";
+                if (lineCount != 0 && lineCount % 20 == 0) cout << "\n"; // imprimir 10 por linha
+                cout << nos[aresta.first]->getId() << " ";
             }
+            lineCount++;
         }
         cout << endl;
     }
@@ -1199,9 +1183,13 @@ struct SetDisjunto {
     }
 };
 
-struct comparadorAresta { // usado para ordenar as arestas baseadas no peso (usado no kruskalAux)
-    inline bool operator()(Aresta *aresta1, Aresta *aresta2) {
-        return aresta1->getPeso() < aresta2->getPeso();
+template<int M, template<typename> class F = std::less>
+struct TupleCompare
+{
+    template<typename T>
+    bool operator()(T const &t1, T const &t2)
+    {
+        return F<typename tuple_element<M, T>::type>()(std::get<M>(t1), std::get<M>(t2));
     }
 };
 
@@ -1209,18 +1197,19 @@ struct comparadorAresta { // usado para ordenar as arestas baseadas no peso (usa
 int Grafo::kruskalAux() {
     int pesoTotal = 0;
 
-    vector<Aresta *> arestasGeral; // vector que conterá todas as arestas do grafo
+    vector<tuple<int, int, int>> arestasGeral; // vector que conterá todas as arestas do grafo
     for (int i = 0; i < nos.size(); i++)
-        arestasGeral.insert(arestasGeral.end(), nos[i]->getArestas()->begin(), nos[i]->getArestas()->end());
+        for(auto aresta : (*nos[i]->getArestas()))
+            arestasGeral.insert(arestasGeral.end(), make_tuple(i, aresta.first, aresta.second));
 
     // ordena as arestas baseadas em seu peso
-    sort(arestasGeral.begin(), arestasGeral.end(), comparadorAresta());
+    sort(arestasGeral.begin(), arestasGeral.end(), TupleCompare<2>());
 
     SetDisjunto sd(nos.size());
 
     for (int i = 0; i < arestasGeral.size(); i++) {
-        int u = arestasGeral[i]->getOrigem();
-        int v = arestasGeral[i]->getDestino();
+        int u = get<0>(arestasGeral[i]);
+        int v = get<1>(arestasGeral[i]);
 
         int set_u = sd.acharPai(u);
         int set_v = sd.acharPai(v);
@@ -1230,7 +1219,7 @@ int Grafo::kruskalAux() {
         if (set_u != set_v) {
             // Aresta atual pertence à AGM
             cout << "(" << nos[u]->getId() << ", " << nos[v]->getId() << ")" << endl;
-            pesoTotal += arestasGeral[i]->getPeso();
+            pesoTotal += get<2>(arestasGeral[i]);
             // Unir os 2 sets
             sd.merge(set_u, set_v);
         }

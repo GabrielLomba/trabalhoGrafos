@@ -2,38 +2,52 @@
 
 No::No(string id) {
     this->id = id;
+    arestas = new unordered_map<int, int>();
 }
 
-void No::inserirAresta(Aresta* aresta) {
-    if (encontrarArestasComDestino(aresta->getDestino()) != NULL)  return; // caso a aresta já tenha sido inserida, retornar
-    arestas.push_back(aresta);
+void No::inserirAresta(int destino, int peso) {
+    if (encontrarArestasComDestino(destino) != NULL)  return; // caso a aresta já tenha sido inserida, retornar
+    arestas->insert(make_pair(destino, peso));
     grau++;
 }
 
-void No::removerAresta(int idDestino) {
-    for (int i = 0; i < arestas.size(); i++) {
-        // no caso de multigrafo, podem haver múltiplas arestas. Portanto, devemos checar tanto o destino como o peso
-        if (arestas[i]->getDestino() == idDestino) {
-            delete(arestas[i]); // desalocar memória da aresta para depois remover do vetor
-            arestas.erase(arestas.begin() + i);
-            grau--;
-            return;
+void No::removerAresta(int destino) {
+    arestas->erase(destino);
+    grau--;
+}
+
+// função auxiliar que atualiza os índices dos nós no map de arestas quando ocorre exclusão de nó
+void No::atualizarIndices(int indiceRemovido){
+    // auxiliar que dirá se a aresta atual já foi reinserida. Como não tratamos multigrafo, um map de key int (destino)
+    // e bool (foi reinserida) é suficiente
+    unordered_map<int, bool> arestaReinserida;
+
+    // como os containers key-value da STL usam keys constantes, é preciso remover e reinserir qualquer indice que
+    // seja maior ou igual ao indiceRemovido (que são os nós que tiveram seus índices subtraídos.
+    // O iterador não é
+    unordered_map<int, int>::iterator it;
+    for(it = arestas->begin(); it != arestas->end();){
+        if(it->first > indiceRemovido && arestaReinserida.find(it->first) == arestaReinserida.end()){
+            int indiceAnterior = it->first;
+            int peso = it->second;
+            arestas->erase(it++);
+            (*arestas)[indiceAnterior - 1] = peso;
+            arestaReinserida[indiceAnterior - 1] = true;
+        } else {
+            // como há deleções durante a iteração, é necessário realizar a incrementação aqui, para evitar
+            // exceções dentro da hashtable
+            ++it;
         }
     }
 }
 
-Aresta* No::encontrarArestasComDestino(int idDestino) {
-    for (int i = 0; i < arestas.size(); i++) {
-        if (arestas[i]->getDestino() == idDestino) {
-            return arestas[i];
-        }
-    }
+pair<const int, int>* No::encontrarArestasComDestino(int destino) {
+    unordered_map<int, int>::iterator it = arestas->find(destino);
 
-    return NULL;
+    if(it != arestas->end())  return &(*it);
+    else return NULL;
 }
 
 No::~No() {
-    for (int i = 0; i < arestas.size(); i++) {
-        delete(arestas[i]);
-    }
+    delete(arestas);
 }
