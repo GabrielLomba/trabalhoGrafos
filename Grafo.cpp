@@ -229,14 +229,14 @@ void Grafo::grauNo(string id) {
     }
 
     if (isDigrafo) {
-        int grauSaida = 0;
+        int grauEntrada = 0;
         for (int i = 0; i < nos.size(); i++) {
             if (i == indice) continue;
-            if (nos[i]->encontrarArestasComDestino(indice) != NULL) grauSaida++;
+            if (nos[i]->encontrarArestasComDestino(indice) != NULL) grauEntrada++;
         }
 
-        cout << "Grau de entrada: " << nos[indice]->getGrau() << endl;
-        cout << "Grau de saida: " << grauSaida << endl;
+        cout << "Grau de entrada: " << grauEntrada << endl;
+        cout << "Grau de saida: " << nos[indice]->getGrau() << endl;
     } else {
         cout << "Grau: " << nos[indice]->getGrau() << endl;
     }
@@ -310,7 +310,7 @@ void Grafo::vizinhancaFechada(string id) {
     // já que não lidamos com multigrafos, podemos simplesmente imprimir todas as arestas do nó
     unordered_map<int, int> arestasAux = *(nos[indice]->getArestas());
     if (arestasAux.size() == 0) {
-        cout << "Nao ha vizinhos\n";
+        cout << nos[indice]->getId() << endl;
     } else {
         // caso não haja laço neste nó, devemos imprimí-lo
         if (nos[indice]->encontrarArestasComDestino(indice) == NULL) cout << nos[indice]->getId() << " ";
@@ -578,9 +578,7 @@ void Grafo::buscaEmLargura(string id) {
 
             for (auto aresta : arestas) {
                 if (!visitado[aresta.first]) {
-                    // À medida que são encontrados nós ainda não visitados, eles são imprimidos e adicionados à fila
-                    cout << nos[aresta.first]->getId() << " ";
-                    visitado[aresta.first] = true;
+                    // À medida que são encontrados nós ainda não visitados, eles são adicionados à fila
                     filaVisitados.push(aresta.first);
                 }
             }

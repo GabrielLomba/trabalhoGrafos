@@ -254,7 +254,7 @@ void showInfoGrafoMenu() {
                 cout << "Opcao invalida! \n\n";
         }
 
-        if (option != 13) {
+        if (option != 2 && option != 13) {
             cout << endl;
         }
     }
@@ -411,11 +411,11 @@ void showInfoExcentricidadeMenu() {
             case 2:
                 cout << "Diametro do Grafo:" << grafo->diametroGrafo() << endl;
                 break;
-            case 4:
-                cout << "Raio do Grafo:" << grafo->raioGrafo() << endl;
-                break;
             case 3:
                 grafo->periferiaGrafo();
+                break;
+            case 4:
+                cout << "Raio do Grafo:" << grafo->raioGrafo() << endl;
                 break;
             case 5:
                 break;
