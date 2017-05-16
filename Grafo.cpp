@@ -117,7 +117,9 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
     for (int i = numNos - 1; i >= 0; i--) {
         // como os ids foram lidos de uma forma incremental, caso encontremos um nó válido, temos certeza que todos os nós nulos já foram preenchidos
         if (nos[i] != NULL) break;
-        nos[i] = new No(nomeDefaultNosSemAresta + to_string(numNos - i));
+        string id = nomeDefaultNosSemAresta + to_string(numNos - i);
+        nos[i] = new No(id);
+        idMap.insert(make_pair(id, i));
     }
 
     No *aux;
@@ -368,11 +370,12 @@ void Grafo::excluirAresta(string idOrigem, string idDestino) {
         return;
     }
 
-    if (nos[indiceOrigem]->encontrarArestasComDestino(indiceDestino) == NULL) {
+    // quando é digrafo e há somente uma aresta, podemos removê-la
+    int n = nos[indiceOrigem]->removerAresta(indiceDestino);
+
+    if (n == 0) {
         cout << "Aresta inexistente no grafo!\n";
     } else {
-        // quando é digrafo e há somente uma aresta, podemos removê-la
-        nos[indiceOrigem]->removerAresta(indiceDestino);
         if (!isDigrafo) {
             // quando não é digrafo e há duas arestas, podemos removê-las pois elas são equivalentes
             nos[indiceDestino]->removerAresta(indiceOrigem);

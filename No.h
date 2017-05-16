@@ -22,7 +22,7 @@ public:
     // para o vetor de arestas para evitar que o vetor seja copiado desnecessariamente
      unordered_map<int, int>* getArestas() { return arestas; };
     void inserirAresta(int destino, int peso);
-    void removerAresta(int destino);
+    int removerAresta(int destino);
     void atualizarIndices(int indiceRemovido);
     pair<const int, int>* encontrarArestasComDestino(int destino);
 };

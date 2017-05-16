@@ -11,9 +11,11 @@ void No::inserirAresta(int destino, int peso) {
     grau++;
 }
 
-void No::removerAresta(int destino) {
-    arestas->erase(destino);
-    grau--;
+// método retorna o número de arestas excluídas
+int No::removerAresta(int destino) {
+    int n = arestas->erase(destino);
+    if(n != 0) grau--;
+    return n;
 }
 
 // função auxiliar que atualiza os índices dos nós no map de arestas quando ocorre exclusão de nó
