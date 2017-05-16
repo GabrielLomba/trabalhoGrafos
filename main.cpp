@@ -254,7 +254,7 @@ void showInfoGrafoMenu() {
                 cout << "Opcao invalida! \n\n";
         }
 
-        if (option != 2 && option != 13) {
+        if (option != 2 && option != 11 && option != 13) {
             cout << endl;
         }
     }
