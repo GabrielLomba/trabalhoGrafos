@@ -21,20 +21,19 @@ private:
     bool isPonderado = true; // assumimos que um grafo é ponderado por padrão
     string nomeArquivoSaida;
     string nomeDefaultNosSemAresta = "NO_SEM_ARESTA";
+
     void lerArquivo(string nomeArquivoEntrada);
     int getIndexNo(string id);
     int adicionarNoInexistente(string id);
     bool isSimples();
     void printMensagemNoInexistente(string id);
-    int componentesConexas();
     int componentesFortementeConexas();
     void ordemBuscaProfundidade(int indice, vector<bool> *visitado, stack<int> &pilha);
     void buscaEmProfundidadeAux(int indiceOrigem, vector<bool> *visitado, bool print);
     void noArticulacaoAux(int indice, vector<bool> *visitado, vector<int> *descoberta, vector<int> *min, vector<int> *pai, bool *existe);
     void arestasPonteAux(int indice, vector<bool> *visitado, vector<int> *descoberta, vector<int> *min, vector<int> *pai, bool *existe);
-    int indiceMenorDistancia(vector<int> distancias, vector<bool> visitados);
-    vector<vector<int>> floydAux();
-    vector<int> dijkstraAux(int indice);
+    vector<vector<int>>* floydAux();
+    int dijkstraAux(int indiceOrigem, int indiceDestino);
     int kruskalAux();
 public:
     Grafo(string nomeArquivoEntrada, string nomeArquivoSaida);

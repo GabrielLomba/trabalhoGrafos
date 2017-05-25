@@ -18,10 +18,10 @@ Grafo::Grafo(string nomeArquivoEntrada, string nomeArquivoSaida) {
 }
 
 //construtor auxiliar para gerar grafo transposto (usado para calcular as componentes fortemente conexas)
-Grafo::Grafo(vector<string> ids, vector<tuple<int, int, int>>* arestas) {
+Grafo::Grafo(vector<string> ids, vector<tuple<int, int, int>> *arestas) {
     isDigrafo = true;
 
-    nos = vector<No*>(ids.size());
+    nos = vector<No *>(ids.size());
 
     for (int i = 0; i < ids.size(); i++) {
         nos[i] = new No(ids[i]);
@@ -273,12 +273,15 @@ void Grafo::fechoTransitivoIndireto(string id) {
         return;
     }
 
-    vector<vector<int>> distancias = floydAux();
+    vector<vector<int>> *distancias = floydAux();
     cout << "Fecho Transitivo Indireto: ";
-    for (int i = 0; i < distancias.size(); i++) {
-        if (distancias[i][indice] != INT_MAX) cout << nos[i]->getId() << " ";
+    for (int i = 0; i < distancias->size(); i++) {
+        if ((*distancias)[i][indice] != INT_MAX) cout << nos[i]->getId() << " ";
     }
     cout << endl;
+
+    //desalocar memória da matriz de distâncias alocada em floydAux
+    delete (distancias);
 }
 
 void Grafo::vizinhancaAberta(string id) {
@@ -388,33 +391,190 @@ void Grafo::excluirAresta(string idOrigem, string idDestino) {
 
 #pragma endregion
 
+/*Nessa região há a implementação de um minHeap para auxiliar no algoritmo de Dijkstra.
+ * Tirada de http://www.geeksforgeeks.org/greedy-algorithms-set-7-dijkstras-algorithm-for-adjacency-list-representation/ */
+#pragma region MinHeap
+
+// Structure to represent a min heap node
+struct MinHeapNode {
+    int v;
+    int dist;
+};
+
+// Structure to represent a min heap
+struct MinHeap {
+    int size;      // Number of heap nodes present currently
+    int *pos;     // This is needed for decreaseKey()
+    struct MinHeapNode **array;
+};
+
+// A utility function to create a new Min Heap Node
+struct MinHeapNode *newMinHeapNode(int v, int dist) {
+    struct MinHeapNode *minHeapNode =
+            (struct MinHeapNode *) malloc(sizeof(struct MinHeapNode));
+    minHeapNode->v = v;
+    minHeapNode->dist = dist;
+    return minHeapNode;
+}
+
+// A utility function to create a Min Heap
+struct MinHeap *createMinHeap(int capacity) {
+    struct MinHeap *minHeap =
+            (struct MinHeap *) malloc(sizeof(struct MinHeap));
+    minHeap->pos = (int *) malloc(capacity * sizeof(int));
+    minHeap->size = 0;
+    minHeap->array =
+            (struct MinHeapNode **) malloc(capacity * sizeof(struct MinHeapNode *));
+    return minHeap;
+}
+
+// A utility function to swap two nodes of min heap. Needed for min heapify
+void swapMinHeapNode(struct MinHeapNode **a, struct MinHeapNode **b) {
+    struct MinHeapNode *t = *a;
+    *a = *b;
+    *b = t;
+}
+
+// A standard function to heapify at given idx
+// This function also updates position of nodes when they are swapped.
+// Position is needed for decreaseKey()
+void minHeapify(struct MinHeap *minHeap, int idx) {
+    int smallest, left, right;
+    smallest = idx;
+    left = 2 * idx + 1;
+    right = 2 * idx + 2;
+
+    if (left < minHeap->size &&
+        minHeap->array[left]->dist < minHeap->array[smallest]->dist)
+        smallest = left;
+
+    if (right < minHeap->size &&
+        minHeap->array[right]->dist < minHeap->array[smallest]->dist)
+        smallest = right;
+
+    if (smallest != idx) {
+        // The nodes to be swapped in min heap
+        MinHeapNode *smallestNode = minHeap->array[smallest];
+        MinHeapNode *idxNode = minHeap->array[idx];
+
+        // Swap positions
+        minHeap->pos[smallestNode->v] = idx;
+        minHeap->pos[idxNode->v] = smallest;
+
+        // Swap nodes
+        swapMinHeapNode(&minHeap->array[smallest], &minHeap->array[idx]);
+
+        minHeapify(minHeap, smallest);
+    }
+}
+
+// A utility function to check if the given minHeap is ampty or not
+int isEmpty(struct MinHeap *minHeap) {
+    return minHeap->size == 0;
+}
+
+// Standard function to extract minimum node from heap
+struct MinHeapNode *extractMin(struct MinHeap *minHeap) {
+    if (isEmpty(minHeap))
+        return NULL;
+
+    // Store the root node
+    struct MinHeapNode *root = minHeap->array[0];
+
+    // Replace root node with last node
+    struct MinHeapNode *lastNode = minHeap->array[minHeap->size - 1];
+    minHeap->array[0] = lastNode;
+
+    // Update position of last node
+    minHeap->pos[root->v] = minHeap->size - 1;
+    minHeap->pos[lastNode->v] = 0;
+
+    // Reduce heap size and heapify root
+    --minHeap->size;
+    minHeapify(minHeap, 0);
+
+    return root;
+}
+
+// Function to decreasy dist value of a given vertex v. This function
+// uses pos[] of min heap to get the current index of node in min heap
+void decreaseKey(struct MinHeap *minHeap, int v, int dist) {
+    // Get the index of v in  heap array
+    int i = minHeap->pos[v];
+
+    // Get the node and update its dist value
+    minHeap->array[i]->dist = dist;
+
+    // Travel up while the complete tree is not hepified.
+    // This is a O(Logn) loop
+    while (i && minHeap->array[i]->dist < minHeap->array[(i - 1) / 2]->dist) {
+        // Swap this node with its parent
+        minHeap->pos[minHeap->array[i]->v] = (i - 1) / 2;
+        minHeap->pos[minHeap->array[(i - 1) / 2]->v] = i;
+        swapMinHeapNode(&minHeap->array[i], &minHeap->array[(i - 1) / 2]);
+
+        // move to parent index
+        i = (i - 1) / 2;
+    }
+}
+
+// A utility function to check if a given vertex
+// 'v' is in min heap or not
+bool isInMinHeap(struct MinHeap *minHeap, int v) {
+    return minHeap->pos[v] < minHeap->size;
+}
+
+#pragma endregion
+
 /*Nessa região estão desenvolvidos os algoritmos de caminho mínimo: Dijkstra e Floyd*/
 #pragma region Caminho Mínimo
 
-vector<int> Grafo::dijkstraAux(int indice) {
-    vector<int> distancias(nos.size(), INT_MAX); // inicializa o vetor de distância com infinito
-    vector<bool> visitados(nos.size(), false);
-    // Distância da raiz recebe 0.
-    distancias[indice] = 0;
-    for (int i = 0; i < nos.size() - 1; i++) {
-        // u recebe o indice da menor distância no vetor de Distâncias.
-        int u = indiceMenorDistancia(distancias, visitados);
-        visitados[u] = true;
+// Esta função calcula de fato as distâncias de acordo com o algoritmo de Dijstrka.
+// Por utilizar minHeap para determinar o nó mais próximo, é uma função de complexidade O(ELogV)
+int Grafo::dijkstraAux(int indiceOrigem, int indiceDestino) {
+    int dist[nos.size()];      // array que conterá as distâncias partindo do nó de índice indiceOrigem para todos os outros do grafo
 
-        No *pont = nos[u];
-        unordered_map<int, int> arestas = *(pont->getArestas());
+    // minHeap represents set E
+    struct MinHeap *minHeap = createMinHeap(nos.size());
 
-        for (auto aresta : arestas) {
-            if (!visitados[aresta.first] && distancias[u] != INT_MAX) {
-                // Altera a distância se o adjacente não foi visitado e se há uma aresta que, se
-                // somada à atual distâncias, seja menor que o valor da distancia atual para o adjacente.
-                if (distancias[aresta.first] > distancias[u] + aresta.second)
-                    distancias[aresta.first] = distancias[u] + aresta.second;
+    // Inicializa min heap com todos os nós (seus índices, no caso) e dist com infinito
+    for (int v = 0; v < nos.size(); ++v) {
+        dist[v] = INT_MAX;
+        minHeap->array[v] = newMinHeapNode(v, dist[v]);
+        minHeap->pos[v] = v;
+    }
 
+    // Inicializar a distância da origem para a origem como 0
+    dist[indiceOrigem] = 0;
+    decreaseKey(minHeap, indiceOrigem, 0);
+
+    // Inicialmente, o tamanho do minHeap é igual à quantidade de nós no grafo
+    minHeap->size = nos.size();
+
+    // Neste loop, minHeap contém todos os nós que
+    // não tiveram suas distâncias mínimas finalizadas
+    while (!isEmpty(minHeap)) {
+
+        struct MinHeapNode *minHeapNode = extractMin(minHeap);
+        int u = minHeapNode->v; // u é o índice do nó atual
+
+        // Atualizar as distâncias mínimas de todos os adjacentes do nó de índice u
+        for (auto aresta : *nos[u]->getArestas()) {
+            int v = aresta.first;
+
+            // caso a distância para v ainda não tenha sido finalizada (se v está no minHeap)
+            // e a distância passando por u é menor do que a atual, atualizar a distância
+            if (isInMinHeap(minHeap, v) && dist[u] != INT_MAX &&
+                aresta.second + dist[u] < dist[v]) {
+                dist[v] = dist[u] + aresta.second;
+
+                // também devemos atualizar o minHeap
+                decreaseKey(minHeap, v, dist[v]);
             }
         }
     }
-    return distancias;
+
+    return dist[indiceDestino];
 }
 
 int Grafo::dijkstra(string idOrigem, string idDestino) {
@@ -430,29 +590,28 @@ int Grafo::dijkstra(string idOrigem, string idDestino) {
         return -1;
     }
     // Retorna a distância de indiceorigem para indiceDestino;
-    return dijkstraAux(indiceOrigem)[indiceDestino];
+    return dijkstraAux(indiceOrigem, indiceDestino);
 }
 
-vector<vector<int>> Grafo::floydAux() {
+vector<vector<int>> *Grafo::floydAux() {
     pair<const int, int> *arestaAux; // auxiliar que conterá a aresta do nó i ao j na primeira fase do Floyd
-    // matriz que será preenchida pelo algoritmo de Floyd
-    vector<vector<int>> matrizDistancia(nos.size(), vector<int>(nos.size()));
+    // matriz que será preenchida pelo algoritmo de Floyd. Alocada no heap para suportar grafos maiores
+    vector<vector<int>> *matrizDistancia = new vector<vector<int>>(nos.size(), vector<int>(nos.size()));
 
     //este loop preenche a matriz com os pesos das arestas existentes e seta 0 nos cominhos entre o no e ele mesmo
-    for (int i = 0; i != nos.size(); i++) {
+    for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
             if (i != j) {
-                // aux recebe todas as arestas entre os nos i e j
+                // aux recebe a aresta entre i e j (não tratamos multigrafos, como dito em aula)
                 arestaAux = nos[i]->encontrarArestasComDestino(j);
                 if (arestaAux != NULL) {
-                    //caso seja multigrafo, pegar a aresta de menor peso
-                    matrizDistancia[i][j] = arestaAux->second;
+                    (*matrizDistancia)[i][j] = arestaAux->second;
                 } else {
-                    //caso não haja arestas entre i e j, o caminho entre eles é infinito
-                    matrizDistancia[i][j] = INT_MAX;
+                    //caso não haja aresta entre i e j, o caminho entre eles é infinito
+                    (*matrizDistancia)[i][j] = INT_MAX;
                 }
             } else {
-                matrizDistancia[i][j] = 0;
+                (*matrizDistancia)[i][j] = 0;
             }
         }
     }
@@ -462,16 +621,18 @@ vector<vector<int>> Grafo::floydAux() {
         for (int j = 0; j < nos.size(); j++) {
             for (int k = 0; k < nos.size(); k++) {
                 if (i == j) break; // caso seja o mesmo nó, ir para a proxima iteraçao
-                // caso o nó intermediário seja um dos nós a se calcular a distância, podemos seguir para a próxima iteração pois é impossível diminuir o caminho usando eles mesmos
+                // caso o nó intermediário seja um dos nós a se calcular a distância, podemos seguir
+                // para a próxima iteração pois é impossível diminuir o caminho usando eles mesmos
                 if (k == i || k == j) continue;
 
                 // caso ainda não haja caminho do i ao k ou do k ao j, impossível criar caminho
-                if (matrizDistancia[i][k] == INT_MAX || matrizDistancia[k][j] == INT_MAX) continue;
+                if ((*matrizDistancia)[i][k] == INT_MAX || (*matrizDistancia)[k][j] == INT_MAX) continue;
 
                 int result =
-                        matrizDistancia[i][k] + matrizDistancia[k][j]; // calcular o caminho usando k como intermediário
-                if (matrizDistancia[i][j] > result) { // trocar caso seja maior
-                    matrizDistancia[i][j] = result;
+                        (*matrizDistancia)[i][k] +
+                        (*matrizDistancia)[k][j]; // calcular o caminho usando k como intermediário
+                if ((*matrizDistancia)[i][j] > result) { // trocar caso seja maior
+                    (*matrizDistancia)[i][j] = result;
                 }
             }
         }
@@ -492,22 +653,13 @@ int Grafo::floyd(string idOrigem, string idDestino) {
         return -1;
     }
 
-    return floydAux()[indiceOrigem][indiceDestino];
-}
+    vector<vector<int>> *matrizDistancia = floydAux();
+    int result = (*matrizDistancia)[indiceOrigem][indiceDestino];
 
-int Grafo::indiceMenorDistancia(vector<int> distancias, vector<bool> visitados) {
+    //desalocar memória alocada em floydAux
+    delete (matrizDistancia);
 
-    int minimo = INT_MAX;
-    int indice = 0;
-
-    for (int i = 0; i < nos.size(); i++) {
-        // caso o nó não tenha sido visitado ainda e sua distância é menor que o mínimo atual, trocar
-        if (!visitados[i] && distancias[i] < minimo) {
-            minimo = distancias[i];
-            indice = i;
-        }
-    }
-    return indice;
+    return result;
 }
 
 #pragma endregion
@@ -727,13 +879,13 @@ int Grafo::componentesFortementeConexas() {
     vector<string> ids; // vector contendo todos os ids dos nós do grafo para criar o grafo transposto
     // vector que conterá todas as arestas do grafo para criar o grafo transposto
     // inicializado de tamanho 1 para que um SEGFAULT não seja gerado ao acessar arestas.end()
-    vector<tuple<int, int, int>>* arestasGeral = new vector<tuple<int, int, int>>();
+    vector<tuple<int, int, int>> *arestasGeral = new vector<tuple<int, int, int>>();
 
     unordered_map<int, int> arestas; // vector auxiliar que guarda as arestas do nó atual dentro do loop
     for (int i = 0; i < nos.size(); i++) {
         ids.push_back(nos[i]->getId());
         arestas = *(nos[i]->getArestas());
-        for(auto aresta : arestas)  arestasGeral->push_back(make_tuple(i, aresta.first, aresta.second));
+        for (auto aresta : arestas) arestasGeral->push_back(make_tuple(i, aresta.first, aresta.second));
     }
 
     // alocar memória para o grafo pois talvez requeira uma memória considerável
@@ -858,16 +1010,17 @@ void Grafo::subGrafoInduzido(set<string> listaNo) {
     // Insere as arestas induzidas no vector arestasInduzidas
     for (int i = 0; i < nosInduzidos->size(); i++) {
         for (int j = 0; j < nosInduzidos->size(); j++) {
-            if(isDigrafo || (*nosInduzidos)[j] >= (*nosInduzidos)[i]) {
+            if (isDigrafo || (*nosInduzidos)[j] >= (*nosInduzidos)[i]) {
                 aresta = nos[(*nosInduzidos)[i]]->encontrarArestasComDestino((*nosInduzidos)[j]);
-                if (aresta != NULL) arestasInduzidas->push_back(make_tuple((*nosInduzidos)[i], (*nosInduzidos)[j], aresta->second));
+                if (aresta != NULL)
+                    arestasInduzidas->push_back(make_tuple((*nosInduzidos)[i], (*nosInduzidos)[j], aresta->second));
             }
         }
     }
 
     cout << "\nO subgrafo induzido resultante eh G(V,E) onde:" << endl << "V = { ";
-    for (int i = 0; i < nosInduzidos->size(); i++){
-        if(i != 0 && i % 10 == 0)  cout << "\n"; // imprimir 10 por linha
+    for (int i = 0; i < nosInduzidos->size(); i++) {
+        if (i != 0 && i % 10 == 0) cout << "\n"; // imprimir 10 por linha
         cout << nos[(*nosInduzidos)[i]]->getId() + " ";
     }
 
@@ -875,20 +1028,20 @@ void Grafo::subGrafoInduzido(set<string> listaNo) {
 
     //string result = "";
     for (int i = 0; i < arestasInduzidas->size(); i++) {
-        if(i != 0 && i % 10 == 0)  cout << "\n"; // imprimir 10 por linha
+        if (i != 0 && i % 10 == 0) cout << "\n"; // imprimir 10 por linha
         cout << "(" << nos[get<0>((*arestasInduzidas)[i])]->getId() << " , " <<
-                  nos[get<1>((*arestasInduzidas)[i])]->getId();
-        if (isPonderado){
+             nos[get<1>((*arestasInduzidas)[i])]->getId();
+        if (isPonderado) {
             cout << ", " << get<2>((*arestasInduzidas)[i]);
         }
-        cout <<  ") ";
+        cout << ") ";
     }
 
     cout << "}\n";
 
     //desalocar memória
-    delete(nosInduzidos);
-    delete(arestasInduzidas);
+    delete (nosInduzidos);
+    delete (arestasInduzidas);
 }
 
 void Grafo::sequenciaDeGraus() {
@@ -1111,32 +1264,19 @@ void Grafo::showNoArticulacao() {
 
 vector<int> Grafo::excentricidade() {
     vector<int> result(nos.size(), 0); // Valor mínimo para excentricidade é 0 que é o valor do nó para ele mesmo
-    vector<vector<int>> matrizDistancia = floydAux(); // matriz com caminhos mais curtos do grafo
+    vector<vector<int>> *matrizDistancia = floydAux(); // matriz com caminhos mais curtos do grafo
     for (int i = 0; i < nos.size(); i++) {
         for (int j = 0; j < nos.size(); j++) {
             // pega o maior caminho mínimo válido para cada no
-            if (matrizDistancia[i][j] != INT_MAX && matrizDistancia[i][j] > result[i])
-                result[i] = matrizDistancia[i][j];
+            if ((*matrizDistancia)[i][j] != INT_MAX && (*matrizDistancia)[i][j] > result[i])
+                result[i] = (*matrizDistancia)[i][j];
         }
     }
+
+    //desalocar memória da matriz de distâncias alocada em floydAux
+    delete (matrizDistancia);
+
     return result;
-}
-
-
-int Grafo::componentesConexas() {
-    vector<bool> visitados(nos.size(),
-                           false);  // vector que conterá os status dos nós percorridos na busca em profundidade
-    int componentes = 0;
-
-    for (int i = 0; i < nos.size(); i++) {
-        if (visitados[i]) continue;
-        // caso encontremos nós ainda não visitados após a busca em profundidade de outros nós,
-        // quer dizer eles não estão conectados e, portanto, constituem uma nova componente conexa
-        componentes++;
-        buscaEmProfundidadeAux(i, &visitados, false);
-    }
-
-    return componentes;
 }
 
 void Grafo::printGrafo() {
@@ -1199,11 +1339,9 @@ struct SetDisjunto {
 };
 
 template<int M, template<typename> class F = std::less>
-struct TupleCompare
-{
+struct TupleCompare {
     template<typename T>
-    bool operator()(T const &t1, T const &t2)
-    {
+    bool operator()(T const &t1, T const &t2) {
         return F<typename tuple_element<M, T>::type>()(std::get<M>(t1), std::get<M>(t2));
     }
 };
@@ -1214,7 +1352,7 @@ int Grafo::kruskalAux() {
 
     vector<tuple<int, int, int>> arestasGeral; // vector que conterá todas as arestas do grafo
     for (int i = 0; i < nos.size(); i++)
-        for(auto aresta : (*nos[i]->getArestas()))
+        for (auto aresta : (*nos[i]->getArestas()))
             arestasGeral.insert(arestasGeral.end(), make_tuple(i, aresta.first, aresta.second));
 
     // ordena as arestas baseadas em seu peso
