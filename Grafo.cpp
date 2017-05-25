@@ -156,8 +156,8 @@ void Grafo::salvarArquivo() {
                 // uma das duas arestas geradas em grafos não direcionados já foi escrita
                 infile << nos[i]->getId() << " " << nos[aresta.first]->getId();
                 // caso seja ponderado, salvamos o peso também
-                if (isPonderado) cout << " " << aresta.second;
-                cout << endl;
+                if (isPonderado) infile << " " << aresta.second;
+                infile << endl;
             }
         }
     }
@@ -835,15 +835,16 @@ void Grafo::complementar() {
 }
 
 void Grafo::subGrafoInduzido(set<string> listaNo) {
-    vector<int> nosInduzidos; // vector que conterá os índices dos nós listados
-    vector<tuple<int, int, int>> arestasInduzidas; // vector que conterá as arestas do subgrafo induzido
+    // alocar vetores no heap para poderem suportar mais dados
+    vector<int> *nosInduzidos = new vector<int>(listaNo.size()); // vector que conterá os índices dos nós listados
+    vector<tuple<int, int, int>> *arestasInduzidas = new vector<tuple<int, int, int>>(); // vector que conterá as arestas do subgrafo induzido
     pair<const int, int> *aresta; // vector auxiliar que conterá as arestas do nó dentro do loop
 
     set<string>::iterator it;
-    int indice;
+    int indiceNo, auxIndice = 0;
     for (it = listaNo.begin(); it != listaNo.end(); ++it) {
-        if ((indice = getIndexNo(*it)) != -1) {
-            nosInduzidos.push_back(indice);
+        if ((indiceNo = getIndexNo(*it)) != -1) {
+            (*nosInduzidos)[auxIndice++] = indiceNo;
         } else {
             printMensagemNoInexistente(*it);
             return;
@@ -851,30 +852,39 @@ void Grafo::subGrafoInduzido(set<string> listaNo) {
     }
 
     // Insere as arestas induzidas no vector arestasInduzidas
-    for (int i = 0; i < nosInduzidos.size(); i++) {
-        for (int j = 0; j < nosInduzidos.size(); j++) {
-            aresta = nos[nosInduzidos[i]]->encontrarArestasComDestino(nosInduzidos[j]);
-            if (aresta != NULL) arestasInduzidas.push_back(make_tuple(nosInduzidos[i], nosInduzidos[j], aresta->second));
+    for (int i = 0; i < nosInduzidos->size(); i++) {
+        for (int j = 0; j < nosInduzidos->size(); j++) {
+            if(isDigrafo || (*nosInduzidos)[j] >= (*nosInduzidos)[i]) {
+                aresta = nos[(*nosInduzidos)[i]]->encontrarArestasComDestino((*nosInduzidos)[j]);
+                if (aresta != NULL) arestasInduzidas->push_back(make_tuple((*nosInduzidos)[i], (*nosInduzidos)[j], aresta->second));
+            }
         }
     }
 
-    cout << "\nO subgrafo induzido resultante eh G(V,E) onde:\nV = { ";
-    for (int i = 0; i < nosInduzidos.size(); i++){
+    cout << "\nO subgrafo induzido resultante eh G(V,E) onde:" << endl << "V = { ";
+    for (int i = 0; i < nosInduzidos->size(); i++){
         if(i != 0 && i % 10 == 0)  cout << "\n"; // imprimir 10 por linha
-        cout << nos[nosInduzidos[i]]->getId() + " ";
+        cout << nos[(*nosInduzidos)[i]]->getId() + " ";
     }
 
-    cout << "}\nE = { ";
+    cout << "}" << endl << "E = { ";
 
-    for (int i = 0; i < arestasInduzidas.size(); i++) {
+    //string result = "";
+    for (int i = 0; i < arestasInduzidas->size(); i++) {
         if(i != 0 && i % 10 == 0)  cout << "\n"; // imprimir 10 por linha
-        cout << "(" + nos[get<0>(arestasInduzidas[i])]->getId() + " , " +
-                  nos[get<1>(arestasInduzidas[i])]->getId();
-        if (isPonderado) cout << ", " + get<2>(arestasInduzidas[i]);
+        cout << "(" << nos[get<0>((*arestasInduzidas)[i])]->getId() << " , " <<
+                  nos[get<1>((*arestasInduzidas)[i])]->getId();
+        if (isPonderado){
+            cout << ", " << get<2>((*arestasInduzidas)[i]);
+        }
         cout <<  ") ";
     }
 
     cout << "}\n";
+
+    //desalocar memória
+    delete(nosInduzidos);
+    delete(arestasInduzidas);
 }
 
 void Grafo::sequenciaDeGraus() {
