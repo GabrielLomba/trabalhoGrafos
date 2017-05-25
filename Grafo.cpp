@@ -18,16 +18,18 @@ Grafo::Grafo(string nomeArquivoEntrada, string nomeArquivoSaida) {
 }
 
 //construtor auxiliar para gerar grafo transposto (usado para calcular as componentes fortemente conexas)
-Grafo::Grafo(vector<string> ids, vector<tuple<int, int, int>> arestas) {
+Grafo::Grafo(vector<string> ids, vector<tuple<int, int, int>>* arestas) {
     isDigrafo = true;
 
+    nos = vector<No*>(ids.size());
+
     for (int i = 0; i < ids.size(); i++) {
-        nos.push_back(new No(ids[i]));
+        nos[i] = new No(ids[i]);
     }
 
-    for (int i = 0; i < arestas.size(); i++) {
+    for (int i = 0; i < arestas->size(); i++) {
         // como é transposto, inserir as arestas invertidas
-        nos[get<2>(arestas[i])]->inserirAresta(get<1>(arestas[i]), get<2>(arestas[i]));
+        nos[get<1>((*arestas)[i])]->inserirAresta(get<0>((*arestas)[i]), get<2>((*arestas)[i]));
     }
 }
 
@@ -725,13 +727,13 @@ int Grafo::componentesFortementeConexas() {
     vector<string> ids; // vector contendo todos os ids dos nós do grafo para criar o grafo transposto
     // vector que conterá todas as arestas do grafo para criar o grafo transposto
     // inicializado de tamanho 1 para que um SEGFAULT não seja gerado ao acessar arestas.end()
-    vector<tuple<int, int, int>> arestasGeral;
+    vector<tuple<int, int, int>>* arestasGeral = new vector<tuple<int, int, int>>();
 
     unordered_map<int, int> arestas; // vector auxiliar que guarda as arestas do nó atual dentro do loop
     for (int i = 0; i < nos.size(); i++) {
         ids.push_back(nos[i]->getId());
         arestas = *(nos[i]->getArestas());
-        for(auto aresta : arestas)  arestasGeral.insert(arestasGeral.end(), make_tuple(i, aresta.first, aresta.second));
+        for(auto aresta : arestas)  arestasGeral->push_back(make_tuple(i, aresta.first, aresta.second));
     }
 
     // alocar memória para o grafo pois talvez requeira uma memória considerável
@@ -762,7 +764,9 @@ int Grafo::componentesFortementeConexas() {
         }
     }
 
-    delete (transposto); // desaloca a memória do grafo transposto
+    // desalocar memória usada
+    delete (transposto);
+    delete (arestasGeral);
 
     return componentes;
 }
