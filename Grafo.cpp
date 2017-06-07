@@ -1408,7 +1408,11 @@ struct comparatorNo {
         if (no2.first->getPeso() == 0) return no2.second == 0;
 
         // caso ambos os pesos sejam positivos, comparamos baseado no grau relevante e no peso do nó
-        return (no1.second / no1.first->getPeso()) < (no2.second / no2.first->getPeso());
+        // é necessário usar float para diferenciar nós candidatos de importância baixa com nós de importância nula
+        float importancia1 = (float) no1.second / no1.first->getPeso();
+        float importancia2 = (float) no2.second / no2.first->getPeso();
+
+        return importancia1 > importancia2;
     }
 };
 
@@ -1446,11 +1450,16 @@ void Grafo::showCoberturaGuloso() {
         nosAux.erase(nosAux.begin());
     }
 
-    cout << "Solucao encontrada pelo algoritmo guloso:\n";
+    int pesoTotal = 0;
+    cout << "Solucao encontrada pelo algoritmo guloso:\nS = {";
     for (int i = 0; i < solucao.size(); ++i) {
-        if (i != 0 && i % 20 == 0) cout << "\n"; // imprime 20 por linha
-        cout << solucao[i]->getId() << " ";
+        pesoTotal += solucao[i]->getPeso();
+        if(i == 0) cout << solucao[i]->getId();
+        else if (i % 20 == 0) cout << "\n" << solucao[i]->getId(); // imprime 20 por linha
+        else cout << ", " << solucao[i]->getId();
     }
+
+    cout << "}\n\nPeso Total: " << pesoTotal << "\n";
 }
 
 void
