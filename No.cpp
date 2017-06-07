@@ -6,7 +6,7 @@ No::No(string id) {
 }
 
 void No::inserirAresta(int destino, int peso) {
-    if (encontrarArestasComDestino(destino) != NULL)  return; // caso a aresta já tenha sido inserida, retornar
+    if (encontrarArestasComDestino(destino) != NULL) return; // caso a aresta já tenha sido inserida, retornar
     arestas->insert(make_pair(destino, peso));
     grau++;
 }
@@ -14,12 +14,12 @@ void No::inserirAresta(int destino, int peso) {
 // método retorna o número de arestas excluídas
 int No::removerAresta(int destino) {
     int n = arestas->erase(destino);
-    if(n != 0) grau--;
+    if (n != 0) grau--;
     return n;
 }
 
 // função auxiliar que atualiza os índices dos nós no map de arestas quando ocorre exclusão de nó
-void No::atualizarIndices(int indiceRemovido){
+void No::atualizarIndices(int indiceRemovido) {
     // auxiliar que dirá se a aresta atual já foi reinserida. Como não tratamos multigrafo, um map de key int (destino)
     // e bool (foi reinserida) é suficiente
     unordered_map<int, bool> arestaReinserida;
@@ -28,8 +28,8 @@ void No::atualizarIndices(int indiceRemovido){
     // seja maior ou igual ao indiceRemovido (que são os nós que tiveram seus índices subtraídos.
     // O iterador não é
     unordered_map<int, int>::iterator it;
-    for(it = arestas->begin(); it != arestas->end();){
-        if(it->first > indiceRemovido && arestaReinserida.find(it->first) == arestaReinserida.end()){
+    for (it = arestas->begin(); it != arestas->end();) {
+        if (it->first > indiceRemovido && arestaReinserida.find(it->first) == arestaReinserida.end()) {
             int indiceAnterior = it->first;
             int peso = it->second;
             arestas->erase(it++);
@@ -43,13 +43,13 @@ void No::atualizarIndices(int indiceRemovido){
     }
 }
 
-pair<const int, int>* No::encontrarArestasComDestino(int destino) {
+pair<const int, int> *No::encontrarArestasComDestino(int destino) {
     unordered_map<int, int>::iterator it = arestas->find(destino);
 
-    if(it != arestas->end())  return &(*it);
+    if (it != arestas->end()) return &(*it);
     else return NULL;
 }
 
 No::~No() {
-    delete(arestas);
+    delete (arestas);
 }

@@ -7,13 +7,22 @@
 using namespace std;
 
 void showMainMenu();
+
 void showEditMenu();
+
 void showBuscaMenu();
+
 void showInfoNoMenu();
+
 void showInfoGrafoMenu();
+
 void showMenuCaminhoMinimo();
+
 void showInfoExcentricidadeMenu();
+
 void showInfoVerificaInfoGrafoMenu();
+
+void showCoberturaMenu();
 
 Grafo *grafo;
 
@@ -30,11 +39,12 @@ int main(int argc, char **argv) {
 
     grafo->salvarArquivo();
 
-    delete(grafo);
+    delete (grafo);
     return 0;
 }
 
 #pragma region Leitura e impressão
+
 string getStringInput(string msg) {
     string id;
     cout << msg;
@@ -43,13 +53,15 @@ string getStringInput(string msg) {
 }
 
 static string getBooleanString(bool b) {
-    if (b)  return "Sim\n";
+    if (b) return "Sim\n";
     else return "Nao\n";
 }
+
 #pragma endregion
 
 //Nessa região estão as funções que exibem as funções exitente no menu
 #pragma region Menu
+
 void cleanConsole() {
 #ifdef _WIN32
     system("cls");
@@ -60,7 +72,7 @@ void cleanConsole() {
 
 void showMainMenu() {
     int option = 0;
-    while (option !=8) {
+    while (option != 8) {
         cout << "Selecione uma das opcoes abaixo apertando seu respectivo numero\n";
         cout << "1. Imprimir grafo\n";
         cout << "2. Editar grafo\n";
@@ -68,8 +80,9 @@ void showMainMenu() {
         cout << "4. Informacoes No\n";
         cout << "5. Busca\n";
         cout << "6. Caminho Minimo\n";
-        cout << "7. Salvar grafo\n";
-        cout << "8. Sair\n\n";
+        cout << "7. Cobertura Minima de Vertices Ponderados\n";
+        cout << "8. Salvar grafo\n";
+        cout << "9. Sair\n\n";
         cout << "Opcao escolhida: ";
         cin >> option;
 
@@ -96,10 +109,13 @@ void showMainMenu() {
                 showMenuCaminhoMinimo();
                 break;
             case 7:
+                showCoberturaMenu();
+                break;
+            case 8:
                 grafo->salvarArquivo();
                 cout << endl;
                 break;
-            case 8:
+            case 9:
                 break;
             default:
                 cout << "Opcao invalida! \n\n";
@@ -125,15 +141,14 @@ void showEditMenu() {
             case 1:
                 grafo->inserirNo(getStringInput("ID do novo no: "));
                 break;
-            case 2:
-            {
+            case 2: {
                 string idOrigem = getStringInput("ID do no de origem: ");
                 string idDestino = getStringInput("ID do no de destino: ");
                 int peso = 1; // peso é setado para 1 por padrão para grafos não ponderados. Caso seja ponderado, devemos lê-lo
-                if(grafo->ehPonderado()){
+                if (grafo->ehPonderado()) {
                     string pesoInput = getStringInput("Peso da aresta: ");
                     peso = atoi(pesoInput.c_str());
-                    if(peso == 0 && pesoInput != "0"){
+                    if (peso == 0 && pesoInput != "0") {
                         // quando peso é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
                         // da string para o inteiro. Neste caso, paramos
                         cout << "Peso invalido!\n";
@@ -146,8 +161,7 @@ void showEditMenu() {
             case 3:
                 grafo->excluirNo(getStringInput("ID do no a ser excluido: "));
                 break;
-            case 4:
-            {
+            case 4: {
                 string idOrigem = getStringInput("ID do no de origem: ");
                 string idDestino = getStringInput("ID do no de destino: ");
                 grafo->excluirAresta(idOrigem, idDestino);
@@ -215,8 +229,7 @@ void showInfoGrafoMenu() {
             case 7:
                 cout << "A ordem do grafo eh " << grafo->ordemGrafo() << endl;
                 break;
-            case 8:
-            {
+            case 8: {
                 set<string> listaNoInduzido;
 
                 cout << "Digite FIM quando finalizar a digitacao dos nos!\n";
@@ -231,11 +244,10 @@ void showInfoGrafoMenu() {
                 grafo->subGrafoInduzido(listaNoInduzido);
             }
                 break;
-            case 9:
-            {
+            case 9: {
                 int k = atoi(getStringInput("K: ").c_str());
-                if (grafo->isKRegular(k))  cout << "O grafo eh " << k << "-regular.\n";
-                else  cout << "O grafo nao eh " << k << "-regular.\n";
+                if (grafo->isKRegular(k)) cout << "O grafo eh " << k << "-regular.\n";
+                else cout << "O grafo nao eh " << k << "-regular.\n";
             }
                 break;
 
@@ -273,32 +285,30 @@ void showMenuCaminhoMinimo() {
         cleanConsole();
 
         switch (option) {
-            case 1:
-            {
+            case 1: {
                 string idOrigem = getStringInput("ID do no de origem: ");
                 string idDestino = getStringInput("ID do no de destino: ");
                 int result = grafo->dijkstra(idOrigem, idDestino);
                 if (result != -1) {
                     if (result == INT_MAX) {
                         cout << "Nao ha caminho entre o no " << idOrigem << " e o no " << idDestino << endl;
-                    }
-                    else {
-                        cout << "O menor caminho entre o no " << idOrigem << " e o no " << idDestino << " eh " << result << endl;
+                    } else {
+                        cout << "O menor caminho entre o no " << idOrigem << " e o no " << idDestino << " eh " << result
+                             << endl;
                     }
                 }
             }
                 break;
-            case 2:
-            {
+            case 2: {
                 string idOrigem = getStringInput("ID do no de origem: ");
                 string idDestino = getStringInput("ID do no de destino: ");
                 int result = grafo->floyd(idOrigem, idDestino);
                 if (result != -1) {
                     if (result == INT_MAX) {
                         cout << "Nao ha caminho entre o no " << idOrigem << " e o no " << idDestino << endl;
-                    }
-                    else {
-                        cout << "O menor caminho entre o no " << idOrigem << " e o no " << idDestino << " eh " << result << endl;
+                    } else {
+                        cout << "O menor caminho entre o no " << idOrigem << " e o no " << idDestino << " eh " << result
+                             << endl;
                     }
                 }
             }
@@ -475,6 +485,41 @@ void showInfoVerificaInfoGrafoMenu() {
         }
     }
 };
+
+void showCoberturaMenu() {
+    int option = 0;
+    while (option != 4) {
+        cout << "Selecione uma das opcoes abaixo apertando seu respectivo numero\n";
+        cout << "1. Guloso\n";
+        cout << "2. Guloso Randomizado\n";
+        cout << "3. Guloso Randomizado Reativo\n";
+        cout << "4. Voltar ao menu anterior\n\n";
+        cout << "Opcao escolhida: ";
+        cin >> option;
+
+        cleanConsole();
+
+        switch (option) {
+            case 1:
+                grafo->showCoberturaGuloso();
+                break;
+            case 2:
+                cout << "Em breve, djow";
+                break;
+            case 3:
+                cout << "Em breve, djow";
+                break;
+            case 4:
+                break;
+            default:
+                cout << "Opcao invalida! \n\n";
+        }
+
+        if (option != 4) {
+            cout << endl;
+        }
+    }
+}
 
 #pragma endregion
 

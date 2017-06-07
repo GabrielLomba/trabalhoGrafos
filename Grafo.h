@@ -35,6 +35,7 @@ private:
     vector<vector<int>>* floydAux();
     int dijkstraAux(int indiceOrigem, int indiceDestino);
     int kruskalAux();
+    void atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGeral, vector<pair<No*, int>> *nosAux);
 public:
     Grafo(string nomeArquivoEntrada, string nomeArquivoSaida);
     ~Grafo();
@@ -75,5 +76,6 @@ public:
     void periferiaGrafo();
     void showComponentesFortementeConexas();
     void showArvoreGeradoraMinima();
+    void showCoberturaGuloso();
 };
 

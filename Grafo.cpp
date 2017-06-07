@@ -1298,7 +1298,7 @@ void Grafo::printGrafo() {
             }
             lineCount++;
         }
-        cout << endl;
+        cout << "\n";
     }
 }
 
@@ -1385,6 +1385,97 @@ void Grafo::showArvoreGeradoraMinima() {
     cout << "As arestas formadoras da AGM sao: \n";
     int peso = kruskalAux();
     cout << "\nPeso da AGM eh " << peso << endl;
+}
+
+#pragma endregion
+
+#pragma region Coberta Mínima de Vérticas Ponderados
+
+//true -> no1 primeiro
+struct comparatorNo
+{
+    inline bool operator() (const pair<No *, int>& no1, const pair<No *, int>& no2) {
+        if(no1.first->getPeso() == 0){
+            // caso ambos os pesos dos nós forem 0, o de maior grau relevante é melhor
+            if(no2.first->getPeso() == 0)  return no1.second > no2.second;
+
+            // caso o peso do no2 não for 0 e o do no1 é 0, nó1 é melhor quando adiciona alguma aresta não atendida.
+            // Portanto, caso o grau relevante de no1 seja diferente de 0, ele é melhor. Caso contrário, no2 é melhor
+            return no1.second != 0;
+        }
+
+        //caso cheguemos até aqui, o peso do no2 é 0 e o do no1 não é. Portanto, podemos fazer o mesmo que acima e
+        // retornar no2 se e somente se ele ainda tiver grau relevante
+        if(no2.first->getPeso() == 0) return no2.second == 0;
+
+        // caso ambos os pesos sejam positivos, comparamos baseado no grau relevante e no peso do nó
+        return (no1.second / no1.first->getPeso()) < (no2.second / no2.first->getPeso());
+    }
+};
+
+void Grafo::showCoberturaGuloso() {
+    // vector que conterá os ponteiros dos nós do grafo e o grau relevante deles, isto é, o número de arestas
+    // ainda não atendidas na cobertura mínima
+    vector<pair<No *, int>> nosAux(nos.size());
+
+    // vector que conterá todas as arestas do grafo no seguinte formato: origem, destino, atendida (na solução)
+    vector<pair<int, int>> arestasGeral;
+
+    for (int i = 0; i < nos.size(); i++) {
+        nosAux[i].first = nos[i];
+        nosAux[i].second = nos[i]->getGrau();
+        for (auto aresta : (*nos[i]->getArestas()))
+            arestasGeral.insert(arestasGeral.end(), make_pair(i, aresta.first));
+    }
+
+    vector<No *> solucao;
+
+    while (arestasGeral.size() != 0) {
+        //primeiramente, ordenamos o vetor de nós
+        sort(nosAux.begin(), nosAux.end(), comparatorNo());
+
+        //como é guloso, escolhemos o melhor nó encontrado
+        solucao.push_back(nosAux[0].first);
+
+        // atualizamos as arestas, removendo as atendidas pelo nó adicionado e diminuindo o grau relevante dos
+        // nós adjacentes ao adicionado
+        atualizaNosEArestas(nosAux[0].first, &arestasGeral, &nosAux);
+    }
+
+    cout << "Solucao encontrada pelo algoritmo guloso:\n";
+    for (int i = 0; i < solucao.size(); ++i) {
+        if (i != 0 && i % 20 == 0) cout << "\n"; // imprime 20 por linha
+        cout << solucao[i]->getId() << " ";
+    }
+}
+
+void
+Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGeral, vector<pair<No *, int>> *nosAux) {
+    vector<pair<int, int>>::iterator it;
+    int indiceNoAdicionado = idMap.find(noAdicionado->getId())->second;
+    for (it = arestasGeral->begin(); it != arestasGeral->end();) {
+        if (it->first == indiceNoAdicionado) {
+            for (int i = 0; i < nosAux->size(); ++i) {
+                if (nos[it->second]->getId() == (*nosAux)[i].first->getId()) {
+                    --(*nosAux)[i].second;
+                    break;
+                }
+            }
+            arestasGeral->erase(it++);
+        } else if (it->second == indiceNoAdicionado) {
+            for (int i = 0; i < nosAux->size(); ++i) {
+                if (nos[it->first]->getId() == (*nosAux)[i].first->getId()) {
+                    --(*nosAux)[i].second;
+                    break;
+                }
+            }
+            arestasGeral->erase(it++);
+        } else {
+            // como há deleções durante a iteração, é necessário realizar a incrementação aqui, para evitar
+            // exceções dentro da hashtable
+            ++it;
+        }
+    }
 }
 
 #pragma endregion
