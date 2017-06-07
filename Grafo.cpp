@@ -1392,12 +1392,11 @@ void Grafo::showArvoreGeradoraMinima() {
 #pragma region Coberta Mínima de Vérticas Ponderados
 
 //true -> no1 primeiro
-struct comparatorNo
-{
-    inline bool operator() (const pair<No *, int>& no1, const pair<No *, int>& no2) {
-        if(no1.first->getPeso() == 0){
+struct comparatorNo {
+    inline bool operator()(const pair<No *, int> &no1, const pair<No *, int> &no2) {
+        if (no1.first->getPeso() == 0) {
             // caso ambos os pesos dos nós forem 0, o de maior grau relevante é melhor
-            if(no2.first->getPeso() == 0)  return no1.second > no2.second;
+            if (no2.first->getPeso() == 0) return no1.second > no2.second;
 
             // caso o peso do no2 não for 0 e o do no1 é 0, nó1 é melhor quando adiciona alguma aresta não atendida.
             // Portanto, caso o grau relevante de no1 seja diferente de 0, ele é melhor. Caso contrário, no2 é melhor
@@ -1406,7 +1405,7 @@ struct comparatorNo
 
         //caso cheguemos até aqui, o peso do no2 é 0 e o do no1 não é. Portanto, podemos fazer o mesmo que acima e
         // retornar no2 se e somente se ele ainda tiver grau relevante
-        if(no2.first->getPeso() == 0) return no2.second == 0;
+        if (no2.first->getPeso() == 0) return no2.second == 0;
 
         // caso ambos os pesos sejam positivos, comparamos baseado no grau relevante e no peso do nó
         return (no1.second / no1.first->getPeso()) < (no2.second / no2.first->getPeso());
@@ -1419,18 +1418,20 @@ void Grafo::showCoberturaGuloso() {
     vector<pair<No *, int>> nosAux(nos.size());
 
     // vector que conterá todas as arestas do grafo no seguinte formato: origem, destino, atendida (na solução)
-    vector<pair<int, int>> arestasGeral;
+    vector<pair<int, int>> arestasNaoAtendidas;
 
     for (int i = 0; i < nos.size(); i++) {
         nosAux[i].first = nos[i];
         nosAux[i].second = nos[i]->getGrau();
-        for (auto aresta : (*nos[i]->getArestas()))
-            arestasGeral.insert(arestasGeral.end(), make_pair(i, aresta.first));
+        for (auto aresta : (*nos[i]->getArestas())) {
+            if (isDigrafo || aresta.first >= i)
+                arestasNaoAtendidas.insert(arestasNaoAtendidas.end(), make_pair(i, aresta.first));
+        }
     }
 
     vector<No *> solucao;
 
-    while (arestasGeral.size() != 0) {
+    while (arestasNaoAtendidas.size() != 0) {
         //primeiramente, ordenamos o vetor de nós
         sort(nosAux.begin(), nosAux.end(), comparatorNo());
 
@@ -1439,7 +1440,10 @@ void Grafo::showCoberturaGuloso() {
 
         // atualizamos as arestas, removendo as atendidas pelo nó adicionado e diminuindo o grau relevante dos
         // nós adjacentes ao adicionado
-        atualizaNosEArestas(nosAux[0].first, &arestasGeral, &nosAux);
+        atualizaNosEArestas(nosAux[0].first, &arestasNaoAtendidas, &nosAux);
+
+        // removemos o nó adicionado à solução
+        nosAux.erase(nosAux.begin());
     }
 
     cout << "Solucao encontrada pelo algoritmo guloso:\n";
@@ -1461,7 +1465,7 @@ Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGera
                     break;
                 }
             }
-            arestasGeral->erase(it++);
+            it = arestasGeral->erase(it);
         } else if (it->second == indiceNoAdicionado) {
             for (int i = 0; i < nosAux->size(); ++i) {
                 if (nos[it->first]->getId() == (*nosAux)[i].first->getId()) {
@@ -1469,7 +1473,7 @@ Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGera
                     break;
                 }
             }
-            arestasGeral->erase(it++);
+            it = arestasGeral->erase(it);
         } else {
             // como há deleções durante a iteração, é necessário realizar a incrementação aqui, para evitar
             // exceções dentro da hashtable

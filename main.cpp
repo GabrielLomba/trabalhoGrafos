@@ -72,7 +72,7 @@ void cleanConsole() {
 
 void showMainMenu() {
     int option = 0;
-    while (option != 8) {
+    while (option != 9) {
         cout << "Selecione uma das opcoes abaixo apertando seu respectivo numero\n";
         cout << "1. Imprimir grafo\n";
         cout << "2. Editar grafo\n";
