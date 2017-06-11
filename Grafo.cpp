@@ -3,6 +3,7 @@
 #include <queue>
 #include <climits>
 #include <algorithm>
+#include <time.h>
 
 // variáveis usadas na verificação de grafo bipartido
 #define SEM_PARTICAO 0
@@ -1391,6 +1392,47 @@ void Grafo::showArvoreGeradoraMinima() {
 
 #pragma region Coberta Mínima de Vérticas Ponderados
 
+void Grafo::showCoberturaGuloso() {
+    pair<vector<No*>, int> solucao = construirSolucao(0.0f);
+
+    cout << "Solucao encontrada pelo algoritmo guloso:\nS = {";
+    for (int i = 0; i < solucao.first.size(); ++i) {
+        if(i == 0) cout << solucao.first[i]->getId();
+        else if (i % 20 == 0) cout << "\n" << solucao.first[i]->getId(); // imprime 20 por linha
+        else cout << ", " << solucao.first[i]->getId();
+    }
+
+    cout << "}\n\nPeso Total: " << solucao.second << "\n";
+}
+
+void Grafo::showCoberturaGulosoRandomizado(double alpha, int numIteracoes) {
+    pair<vector<No*>, int> solucao, melhorSolucao;
+
+    // a princípio, o custo da melhor solução é infinito
+    melhorSolucao.second = INT_MAX;
+
+    // caso o alpha passado seja zero, podemos fazer uma única iteração pois o resultado não mudará (equivalente ao guloso comum)
+    if(alpha == 0) numIteracoes = 1;
+
+
+
+    for(int i = 0; i < numIteracoes; ++i){
+        solucao = construirSolucao(alpha);
+        if(solucao.second < melhorSolucao.second){
+            melhorSolucao = solucao;
+        }
+    }
+
+    cout << "Solucao encontrada pelo algoritmo guloso randomizado:\nS = {";
+    for (int i = 0; i < melhorSolucao.first.size(); ++i) {
+        if(i == 0) cout << melhorSolucao.first[i]->getId();
+        else if (i % 20 == 0) cout << "\n" << melhorSolucao.first[i]->getId(); // imprime 20 por linha
+        else cout << ", " << melhorSolucao.first[i]->getId();
+    }
+
+    cout << "}\n\nPeso Total: " << melhorSolucao.second << "\n";
+}
+
 //true -> no1 primeiro
 struct comparatorNo {
     inline bool operator()(const pair<No *, int> &no1, const pair<No *, int> &no2) {
@@ -1416,7 +1458,8 @@ struct comparatorNo {
     }
 };
 
-void Grafo::showCoberturaGuloso() {
+// função auxiliar que, de fato, contruirá as soluções dos algoritmos gulosos
+pair<vector<No*>, int> Grafo::construirSolucao(double alpha) {
     // vector que conterá os ponteiros dos nós do grafo e o grau relevante deles, isto é, o número de arestas
     // ainda não atendidas na cobertura mínima
     vector<pair<No *, int>> nosAux(nos.size());
@@ -1433,37 +1476,44 @@ void Grafo::showCoberturaGuloso() {
         }
     }
 
-    vector<No *> solucao;
+    // solução é um pair consistindo do vetor de nós contidos na solução e um int que guarda o custo total da solução
+    pair<vector<No*>, int> solucao;
+
+    // usado na randomização dos índices
+    default_random_engine generator( (unsigned int)time(0) );
 
     while (arestasNaoAtendidas.size() != 0) {
         //primeiramente, ordenamos o vetor de nós
         sort(nosAux.begin(), nosAux.end(), comparatorNo());
 
-        //como é guloso, escolhemos o melhor nó encontrado
-        solucao.push_back(nosAux[0].first);
+        //recupera o índice do nó a ser adicionado na solução
+        int indice = 0;
+        if(alpha != 0){
+            int range = (int) (alpha * nosAux.size());
+            while(nosAux[range].second == 0 && range != 0){
+                // caso haja nós com importância 0 dentro do range de escolha randomizada, diminuir a range
+                // até achar um nó com importância (nosAux[range].second !=0) ou caso cheguemos ao começo do vetor (range == 0)
+                --range;
+            }
+            uniform_int_distribution<int>  distr(0, range);
+            indice = distr(generator);
+        }
+
+        //como é guloso, escolhemos o melhor nó encontrado e atualizamos tanto a lista de nós quanto o peso total
+        solucao.first.push_back(nosAux[indice].first);
+        solucao.second += nosAux[indice].first->getPeso();
 
         // atualizamos as arestas, removendo as atendidas pelo nó adicionado e diminuindo o grau relevante dos
         // nós adjacentes ao adicionado
-        atualizaNosEArestas(nosAux[0].first, &arestasNaoAtendidas, &nosAux);
+        atualizaNosEArestas(nosAux[indice].first, &arestasNaoAtendidas, &nosAux);
 
         // removemos o nó adicionado à solução
-        nosAux.erase(nosAux.begin());
+        nosAux.erase(nosAux.begin() + indice);
     }
-
-    int pesoTotal = 0;
-    cout << "Solucao encontrada pelo algoritmo guloso:\nS = {";
-    for (int i = 0; i < solucao.size(); ++i) {
-        pesoTotal += solucao[i]->getPeso();
-        if(i == 0) cout << solucao[i]->getId();
-        else if (i % 20 == 0) cout << "\n" << solucao[i]->getId(); // imprime 20 por linha
-        else cout << ", " << solucao[i]->getId();
-    }
-
-    cout << "}\n\nPeso Total: " << pesoTotal << "\n";
+    return solucao;
 }
 
-void
-Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGeral, vector<pair<No *, int>> *nosAux) {
+void Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGeral, vector<pair<No *, int>> *nosAux) {
     vector<pair<int, int>>::iterator it;
     int indiceNoAdicionado = idMap.find(noAdicionado->getId())->second;
     for (it = arestasGeral->begin(); it != arestasGeral->end();) {

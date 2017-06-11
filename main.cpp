@@ -503,8 +503,33 @@ void showCoberturaMenu() {
             case 1:
                 grafo->showCoberturaGuloso();
                 break;
-            case 2:
-                cout << "Em breve, djow";
+            case 2: {
+                string alphaInput = getStringInput("Alfa: ");
+                double alpha = atof(alphaInput.c_str());
+                if((alpha == 0 && alphaInput != "0")){
+                    // quando numIteracoes é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
+                    // da string para o inteiro. Neste caso, paramos
+                    cout << "Alfa invalido!\n";
+                    break;
+                }
+                if(alpha < 0.0 || alpha > 1.0){
+                    cout << "Alfa deve estar entre 0 e 1 (inclusive)!\n";
+                    break;
+                }
+                string numIteracoesInput = getStringInput("Numero de iteracoes: ");
+                int numIteracoes = atoi(numIteracoesInput.c_str());
+                if (numIteracoes == 0 && numIteracoesInput != "0") {
+                    // quando numIteracoes é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
+                    // da string para o inteiro. Neste caso, paramos
+                    cout << "Numero de iteracoes invalido!\n";
+                    break;
+                }
+                if(numIteracoes <= 0){
+                    cout << "Numero de iteracoes deve ser não negativo!\n";
+                    break;
+                }
+                grafo->showCoberturaGulosoRandomizado(alpha, numIteracoes);
+            }
                 break;
             case 3:
                 cout << "Em breve, djow";
