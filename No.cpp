@@ -1,7 +1,8 @@
 #include "No.h"
 
-No::No(string id) {
+No::No(string id, int peso) {
     this->id = id;
+    this->peso = peso;
     arestas = new unordered_map<int, int>();
 }
 

@@ -14,7 +14,7 @@ private:
     int peso = 0;
     unordered_map<int, int> *arestas;
 public:
-    No(string id);
+    No(string id, int peso);
 
     ~No();
 

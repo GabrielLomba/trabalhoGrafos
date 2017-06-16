@@ -25,7 +25,7 @@ Grafo::Grafo(vector<string> ids, vector<tuple<int, int, int>> *arestas) {
     nos = vector<No *>(ids.size());
 
     for (int i = 0; i < ids.size(); i++) {
-        nos[i] = new No(ids[i]);
+        nos[i] = new No(ids[i], 0);
     }
 
     for (int i = 0; i < arestas->size(); i++) {
@@ -89,7 +89,7 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
 
         if (it == idMap.end()) {
             idMap[origem] = indiceProximo;
-            nos[indiceProximo] = new No(origem);
+            nos[indiceProximo] = new No(origem, indiceProximo % 3 + 1);
             indiceOrigem = indiceProximo; // caso o nó não exista ainda, precisamos setar novamente o indiceOrigem
             indiceProximo++;  // caso ambos origem e destino não existam, incrementar o i aqui fará com que os dois sejam criados adequadamente
         } else {
@@ -100,7 +100,7 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
 
         if (it == idMap.end()) {
             idMap[destino] = indiceProximo;
-            nos[indiceProximo] = new No(destino);
+            nos[indiceProximo] = new No(destino, indiceProximo % 3 + 1);
             indiceDestino = indiceProximo; // caso o nó não exista ainda, precisamos setar novamente o indiceDestino
             indiceProximo++;
         } else {
@@ -121,7 +121,7 @@ void Grafo::lerArquivo(string nomeArquivoEntrada) {
         // como os ids foram lidos de uma forma incremental, caso encontremos um nó válido, temos certeza que todos os nós nulos já foram preenchidos
         if (nos[i] != NULL) break;
         string id = nomeDefaultNosSemAresta + to_string(numNos - i);
-        nos[i] = new No(id);
+        nos[i] = new No(id, i % 3 + 1);
         idMap.insert(make_pair(id, i));
     }
 
@@ -182,7 +182,7 @@ void Grafo::inserirNo(string id) {
         return;
     }
 
-    No *no = new No(id);
+    No *no = new No(id, nos.size() % 3 + 1);
     nos.push_back(no);
     idMap[id] = nos.size() - 1;
     cout << "No " << id << " inserido com sucesso!\n";
