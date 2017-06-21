@@ -518,7 +518,7 @@ void showCoberturaMenu() {
                 }
                 string numIteracoesInput = getStringInput("Numero de iteracoes: ");
                 int numIteracoes = atoi(numIteracoesInput.c_str());
-                if (numIteracoes == 0 && numIteracoesInput != "0") {
+                if ((numIteracoes == 0 && numIteracoesInput != "0") || (numIteracoes <= 0)) {
                     // quando numIteracoes é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
                     // da string para o inteiro. Neste caso, paramos
                     cout << "Numero de iteracoes invalido!\n";
@@ -532,7 +532,25 @@ void showCoberturaMenu() {
             }
                 break;
             case 3:
-                cout << "Em breve, djow";
+            {
+                string numIteracoesInput = getStringInput("Numero de iteracoes: ");
+                int numIteracoes = atoi(numIteracoesInput.c_str());
+                if ((numIteracoes == 0 && numIteracoesInput != "0") || (numIteracoes <= 0)) {
+                    // quando numIteracoes é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
+                    // da string para o inteiro. Neste caso e quando numIteracoes eh 0 ou negativo, paramos
+                    cout << "Numero de iteracoes invalido!\n";
+                    break;
+                }
+                string blocoIteracoesInput = getStringInput("Bloco de iteracoes: ");
+                int blocoIteracoes = atoi(blocoIteracoesInput.c_str());
+                if ( (blocoIteracoes == 0 && blocoIteracoesInput != "0") || (blocoIteracoes <= 0)) {
+                    // quando numIteracoes é 0 e o input não especificou 0, de fato, ocorreu erro na conversão
+                    // da string para o inteiro. Neste caso e quando blocoIteracoes eh 0 ou negativo, paramos
+                    cout << "Bloco de iteracoes invalido!\n";
+                    break;
+                }
+                grafo->showCoberturaGulosoRandomizadoReativo(numIteracoes, blocoIteracoes);
+            }
                 break;
             case 4:
                 break;

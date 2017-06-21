@@ -9,6 +9,7 @@
 #define SEM_PARTICAO 0
 #define PARTICAO_A 1
 #define PARTICAO_B 2
+#define TAM_REATIVO 10
 
 #pragma region Construtor
 
@@ -1393,11 +1394,11 @@ void Grafo::showArvoreGeradoraMinima() {
 #pragma region Coberta Mínima de Vérticas Ponderados
 
 void Grafo::showCoberturaGuloso() {
-    pair<vector<No*>, int> solucao = construirSolucao(0.0f);
+    pair<vector<No *>, int> solucao = construirSolucao(0.0f);
 
     cout << "Solucao encontrada pelo algoritmo guloso:\nS = {";
     for (int i = 0; i < solucao.first.size(); ++i) {
-        if(i == 0) cout << solucao.first[i]->getId();
+        if (i == 0) cout << solucao.first[i]->getId();
         else if (i % 20 == 0) cout << "\n" << solucao.first[i]->getId(); // imprime 20 por linha
         else cout << ", " << solucao.first[i]->getId();
     }
@@ -1406,31 +1407,110 @@ void Grafo::showCoberturaGuloso() {
 }
 
 void Grafo::showCoberturaGulosoRandomizado(double alpha, int numIteracoes) {
-    pair<vector<No*>, int> solucao, melhorSolucao;
-
-    // a princípio, o custo da melhor solução é infinito
-    melhorSolucao.second = INT_MAX;
-
-    // caso o alpha passado seja zero, podemos fazer uma única iteração pois o resultado não mudará (equivalente ao guloso comum)
-    if(alpha == 0) numIteracoes = 1;
-
-
-
-    for(int i = 0; i < numIteracoes; ++i){
-        solucao = construirSolucao(alpha);
-        if(solucao.second < melhorSolucao.second){
-            melhorSolucao = solucao;
-        }
-    }
+    pair<vector<No *>, int> melhorSolucao = construirSolucaoRandomizada(alpha, numIteracoes);
 
     cout << "Solucao encontrada pelo algoritmo guloso randomizado:\nS = {";
     for (int i = 0; i < melhorSolucao.first.size(); ++i) {
-        if(i == 0) cout << melhorSolucao.first[i]->getId();
+        if (i == 0) cout << melhorSolucao.first[i]->getId();
         else if (i % 20 == 0) cout << "\n" << melhorSolucao.first[i]->getId(); // imprime 20 por linha
         else cout << ", " << melhorSolucao.first[i]->getId();
     }
 
     cout << "}\n\nPeso Total: " << melhorSolucao.second << "\n";
+}
+
+struct alphaProb{
+    float prob;
+    float alpha;
+};
+
+void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIteracoes) {
+    float alphaVal;
+    int indiceEscolhido = 0;
+
+    vector<alphaProb> alphaProbs(TAM_REATIVO);
+    vector<float> media(TAM_REATIVO);
+    vector<int> totalSolucao(TAM_REATIVO, 0);
+    vector<int> totalChamada(TAM_REATIVO, 0);
+    vector<float> q(TAM_REATIVO);
+
+    for (int i = 0; i < TAM_REATIVO; i++) {
+        alphaProbs[i].alpha = 0.05f * (i + 1);
+        alphaProbs[i].prob = 1.0f / TAM_REATIVO;
+    }
+
+    pair<vector<No *>, int> solucao, melhorSolucao;
+
+    // a princípio, o custo da melhor solução é infinito
+    melhorSolucao.second = INT_MAX;
+
+    // usado na randomização para determinar qual alpha será escolhido
+    default_random_engine generator((unsigned int) time(0));
+
+    for (int i = 0; i < numIteracoes; ++i) {
+        // a cada blocoIteracoes iterações, devemos atualizar os vetores q e as probabilidades
+        if (i % blocoIteracoes == 0) {
+            // atualizamos o vetor q
+            for(int j = 0; j < TAM_REATIVO; ++j) {
+                q[j] = melhorSolucao.second / media[j];
+            }
+
+            // calculamos a soma dos valores do vetor q
+            float qSum = 0.0f;
+            for(int j = 0; j < TAM_REATIVO; ++j) qSum += q[j];
+
+            // atualizamos as probabilidades
+            for(int j = 0; j < TAM_REATIVO; ++j) {
+                alphaProbs[j].prob = q[j] / qSum;
+            }
+        }
+
+        // é gerado o valor escolhido para decidirmos o valor alpha
+        // como não se pode usar o uniform_int_distribution com floats diretamente, usamos um int de 0 a 100
+        // e depois dividimos por 100 para obter o mesmo efeito
+        uniform_int_distribution<int> distr(0, 100);
+        float escolhido = (float) distr(generator) / 100;
+
+        // para deixar a seleção entre os valores alpha justa, devemos embaralhar o array
+        random_shuffle(begin(alphaProbs), end(alphaProbs));
+
+        for(int j = 0; j < TAM_REATIVO; ++j){
+            // o valor das probabilidades é subtraído do valor escolhido até chegarmos a um valor negativo.
+            // Então, caso escolhido seja negativo ou zero, ele caiu na faixa de probabilidades, prob[i] é selecionado
+            escolhido -= alphaProbs[j].prob;
+            if(escolhido <= 0) {
+                indiceEscolhido = j;
+                break;
+            }
+        }
+
+        alphaVal = alphaProbs[indiceEscolhido].alpha;
+
+        solucao = construirSolucaoRandomizada(alphaVal, numIteracoes / TAM_REATIVO);
+
+        // caso a solução seja melhor do que a anterior, atualizamos a melhor solução
+        if(solucao.second < melhorSolucao.second){
+            melhorSolucao = solucao;
+        }
+
+        // atualizamos também os vetores contendo a media e os vetores relacionados
+        ++totalChamada[indiceEscolhido];
+        totalSolucao[indiceEscolhido] += solucao.second;
+        media[indiceEscolhido] = totalSolucao[indiceEscolhido] / totalChamada[indiceEscolhido];
+    }
+
+    cout << "Solucao encontrada pelo algoritmo guloso randomizado:\nS = {";
+    for (int i = 0; i < melhorSolucao.first.size(); ++i) {
+        if (i == 0) cout << melhorSolucao.first[i]->getId();
+        else if (i % 20 == 0) cout << "\n" << melhorSolucao.first[i]->getId(); // imprime 20 por linha
+        else cout << ", " << melhorSolucao.first[i]->getId();
+    }
+
+    cout << "}\n\nPeso Total: " << melhorSolucao.second << "\n";
+}
+
+void Grafo::atualizaProbReativo(float *prob, float *media, float *q, pair<vector<No *>, int> melhorSolucao) {
+
 }
 
 //true -> no1 primeiro
@@ -1458,8 +1538,27 @@ struct comparatorNo {
     }
 };
 
+pair<vector<No*>, int> Grafo::construirSolucaoRandomizada(double alpha, int numIteracoes) {
+    pair<vector<No *>, int> solucao, melhorSolucao;
+
+    // a princípio, o custo da melhor solução é infinito
+    melhorSolucao.second = INT_MAX;
+
+    // caso o alpha passado seja zero, podemos fazer uma única iteração pois o resultado não mudará (equivalente ao guloso comum)
+    if (alpha == 0) numIteracoes = 1;
+
+    for (int i = 0; i < numIteracoes; ++i) {
+        solucao = construirSolucao(alpha);
+        if (solucao.second < melhorSolucao.second) {
+            melhorSolucao = solucao;
+        }
+    }
+
+    return melhorSolucao;
+}
+
 // função auxiliar que, de fato, contruirá as soluções dos algoritmos gulosos
-pair<vector<No*>, int> Grafo::construirSolucao(double alpha) {
+pair<vector<No *>, int> Grafo::construirSolucao(double alpha) {
     // vector que conterá os ponteiros dos nós do grafo e o grau relevante deles, isto é, o número de arestas
     // ainda não atendidas na cobertura mínima
     vector<pair<No *, int>> nosAux(nos.size());
@@ -1477,10 +1576,10 @@ pair<vector<No*>, int> Grafo::construirSolucao(double alpha) {
     }
 
     // solução é um pair consistindo do vetor de nós contidos na solução e um int que guarda o custo total da solução
-    pair<vector<No*>, int> solucao;
+    pair<vector<No *>, int> solucao;
 
     // usado na randomização dos índices
-    default_random_engine generator( (unsigned int)time(0) );
+    default_random_engine generator((unsigned int) time(0));
 
     while (arestasNaoAtendidas.size() != 0) {
         //primeiramente, ordenamos o vetor de nós
@@ -1488,14 +1587,14 @@ pair<vector<No*>, int> Grafo::construirSolucao(double alpha) {
 
         //recupera o índice do nó a ser adicionado na solução
         int indice = 0;
-        if(alpha != 0){
+        if (alpha != 0) {
             int range = (int) (alpha * nosAux.size());
-            while(nosAux[range].second == 0 && range != 0){
+            while (nosAux[range].second == 0 && range != 0) {
                 // caso haja nós com importância 0 dentro do range de escolha randomizada, diminuir a range
                 // até achar um nó com importância (nosAux[range].second !=0) ou caso cheguemos ao começo do vetor (range == 0)
                 --range;
             }
-            uniform_int_distribution<int>  distr(0, range);
+            uniform_int_distribution<int> distr(0, range);
             indice = distr(generator);
         }
 
@@ -1513,7 +1612,8 @@ pair<vector<No*>, int> Grafo::construirSolucao(double alpha) {
     return solucao;
 }
 
-void Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGeral, vector<pair<No *, int>> *nosAux) {
+void
+Grafo::atualizaNosEArestas(No *noAdicionado, vector<pair<int, int>> *arestasGeral, vector<pair<No *, int>> *nosAux) {
     vector<pair<int, int>>::iterator it;
     int indiceNoAdicionado = idMap.find(noAdicionado->getId())->second;
     for (it = arestasGeral->begin(); it != arestasGeral->end();) {
