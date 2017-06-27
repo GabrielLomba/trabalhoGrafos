@@ -1471,9 +1471,6 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
         uniform_int_distribution<int> distr(0, 100);
         float escolhido = (float) distr(generator) / 100;
 
-        // para deixar a seleção entre os valores alpha justa, devemos embaralhar o array
-        random_shuffle(begin(alphaProbs), end(alphaProbs));
-
         for(int j = 0; j < TAM_REATIVO; ++j){
             // o valor das probabilidades é subtraído do valor escolhido até chegarmos a um valor negativo.
             // Então, caso escolhido seja negativo ou zero, ele caiu na faixa de probabilidades, prob[i] é selecionado
@@ -1499,7 +1496,7 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
         media[indiceEscolhido] = totalSolucao[indiceEscolhido] / totalChamada[indiceEscolhido];
     }
 
-    cout << "Solucao encontrada pelo algoritmo guloso randomizado:\nS = {";
+    cout << "Solucao encontrada pelo algoritmo guloso randomizado reativo:\nS = {";
     for (int i = 0; i < melhorSolucao.first.size(); ++i) {
         if (i == 0) cout << melhorSolucao.first[i]->getId();
         else if (i % 20 == 0) cout << "\n" << melhorSolucao.first[i]->getId(); // imprime 20 por linha
@@ -1507,10 +1504,6 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
     }
 
     cout << "}\n\nPeso Total: " << melhorSolucao.second << "\n";
-}
-
-void Grafo::atualizaProbReativo(float *prob, float *media, float *q, pair<vector<No *>, int> melhorSolucao) {
-
 }
 
 //true -> no1 primeiro
