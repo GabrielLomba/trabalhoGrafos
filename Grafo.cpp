@@ -1,15 +1,15 @@
 #include "Grafo.h"
+#include "Clock.h"
 #include <sstream>
 #include <queue>
 #include <climits>
 #include <algorithm>
-#include <time.h>
 
 // variáveis usadas na verificação de grafo bipartido
 #define SEM_PARTICAO 0
 #define PARTICAO_A 1
 #define PARTICAO_B 2
-#define TAM_REATIVO 10
+#define TAM_REATIVO 6
 
 #pragma region Construtor
 
@@ -1435,7 +1435,7 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
     vector<float> q(TAM_REATIVO);
 
     for (int i = 0; i < TAM_REATIVO; i++) {
-        alphaProbs[i].alpha = 0.05f * (i + 1);
+        alphaProbs[i].alpha = 0.1f * (i + 1);
         alphaProbs[i].prob = 1.0f / TAM_REATIVO;
     }
 
@@ -1532,6 +1532,10 @@ struct comparatorNo {
 };
 
 pair<vector<No*>, int> Grafo::construirSolucaoRandomizada(double alpha, int numIteracoes) {
+    Clock *clock = new Clock("Gulosera");
+
+    //auxiliar para mostrar progresso na interface
+    int k = 0;
     pair<vector<No *>, int> solucao, melhorSolucao;
 
     // a princípio, o custo da melhor solução é infinito
@@ -1545,8 +1549,14 @@ pair<vector<No*>, int> Grafo::construirSolucaoRandomizada(double alpha, int numI
         if (solucao.second < melhorSolucao.second) {
             melhorSolucao = solucao;
         }
+        //atualizar auxiliar que mostra informações na interface
+        ++k;
+        if(k % 5 == 0){
+            cout << k << " iteraçoes concluidas\n";
+        }
     }
 
+    delete(clock);
     return melhorSolucao;
 }
 

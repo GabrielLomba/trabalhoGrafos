@@ -1,0 +1,520 @@
+Guloso
+
+Instância	Qualidade	Tempo
+P1		    843		    1.548s
+P2		    1124		3.453s
+P3		    1123		3.493s
+M1		    2953		56.308s
+M2		    2967		57.593s
+M3		    2680		44.756s
+M4		    2201		24.683s
+G1		    16236		603.384s
+G2		    15857		459.59s
+G3		    1960		194.229
+
+
+Guloso Randomizado Alfa = 0.1
+
+Instância	Qualidade	Tempo
+P1
+1 vez       838         155.526s
+2 vez       837         155.944s
+3 vez       834         164.279s
+4 vez       838         161.173s
+5 vez       837         155.794s
+6 vez       837         156.47s
+7 vez       834         158.504s
+8 vez       837         157.264s
+9 vez       835         156.755s
+10 vez      837         156.215s
+
+P2
+1 vez       1117        348.743s
+2 vez       1117        342.386s
+3 vez       1118        344.368s
+4 vez       1116        344.175s
+5 vez       1115        345.05s
+6 vez       1119        345.451s
+7 vez       1120        345.61s
+8 vez       1117        347.899s
+9 vez       1118        345.239s
+10 vez      1118        340.697s
+
+P3
+1 vez       1118        344.499s
+2 vez       1118        342.083s
+3 vez       1119        343.262s
+4 vez       1124        337.301s
+5 vez       1120        342.115s
+6 vez       1115        341.671s
+7 vez       1117        341.09s
+8 vez       1120        344.444S
+9 vez       1118        342.148s
+10 vez      1118        340.961
+
+M1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M4
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+Guloso Randomizado Alfa = 0.2
+
+Instância	Qualidade	Tempo
+P1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+P2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+P3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M4
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+Guloso Randomizado Alfa = 0.3
+
+Instância	Qualidade	Tempo
+P1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+P2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+P3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M4
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+Guloso Randomizado Alfa = 0.4
+
+Instância	Qualidade	Tempo
+P1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+P2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+P3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+M4
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G1
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G2
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+G3
+1 vez
+2 vez
+3 vez
+4 vez
+5 vez
+6 vez
+7 vez
+8 vez
+9 vez
+10 vez
+
+Guloso Randomizado Reativo
+
+Instância	Qualidade	Tempo
+P1
+P2
+P3
+M1
+M2
+M3
+M4
+G1
+G2
+G3
