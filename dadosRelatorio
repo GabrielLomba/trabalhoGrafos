@@ -53,52 +53,52 @@ P3
 10 vez      1118        340.961
 
 M1
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+1 vez       2947        5760.94s
+2 vez       2947        5839.36s
+3 vez       2947        5748.45s
+4 vez       2947        5736.4s
+5 vez       2947        5709.56s
+6 vez       2947        5639.71S
+7 vez       2950        5743.34s
+8 vez       2947        5747.05s
+9 vez       2947        5705.65s
+10 vez      2950        5723.76s
 
-M2
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+M2 (5 em paralelo)
+1 vez       2950        7387.93s
+2 vez       2951        7358.01s
+3 vez       2953        7390s
+4 vez       2953        7373.38s
+5 vez       2954        7387.78s
+6 vez       2950        7656.19s
+7 vez       2953        7607.76s
+8 vez       2956        7654.35s
+9 vez       2953        7626.82s
+10 vez      2952        7651.45s
 
-M3
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+M3 (5 em paralelo)
+1 vez       2686        5905.7s
+2 vez       2677        5941.37s
+3 vez       2683        5945.37s
+4 vez       2683        5937.4s
+5 vez       2680        5926.29s
+6 vez       2685        5691.33s
+7 vez       2683        5634.61s
+8 vez       2684        5652.5s
+9 vez       2683        5678.45s
+10 vez      2686        5601.91s
 
-M4
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+M4 (5 em paralelo)
+1 vez       2199        3108.41s
+2 vez       2199        3124.03s
+3 vez       2198        3115.99s
+4 vez       2201        3084.97s
+5 vez       2201        3120.01s
+6 vez       2195        3444.04s
+7 vez       2198        3431.3s
+8 vez       2200        3449.92s
+9 vez       2202        3447.84s
+10 vez      2199        3445.06s
 
 G1
 1 vez
@@ -262,72 +262,72 @@ G3
 Guloso Randomizado Alfa = 0.3
 
 Instância	Qualidade	Tempo
-P1
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+P1 (5 em paralelo)
+1 vez       842         192.135s
+2 vez       842         191.088s
+3 vez       843         192.418s
+4 vez       842         191.646s
+5 vez       843         194.112s
+6 vez       840         213.112s
+7 vez       840         211.914s
+8 vez       840         212.461s
+9 vez       840         212.263s
+10 vez      843         213.349s
 
-P2
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+P2 (5 em paralelo)
+1 vez       1125        432.582s
+2 vez       1125        462.99s
+3 vez       1123        432.534s
+4 vez       1123        460.993s
+5 vez       1123        460.04s
+6 vez       1124        446.958s
+7 vez       1123        440.942s
+8 vez       1124        438.393s
+9 vez       1119        447.069s
+10 vez      1119        448.287s
 
-P3
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+P3 (5 em paralelo)
+1 vez       1124        431.311s
+2 vez       1124        435.257s
+3 vez       1126        435.63s
+4 vez       1124        435.325s
+5 vez       1127        433.03s
+6 vez       1123        447.525s
+7 vez       1125        452.689s
+8 vez       1125        454.139s
+9 vez       1123        452.675s
+10 vez      1128        452.427s
 
-M1
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+M1 (5 em paralelo)
+1 vez       2956        8145.36s
+2 vez       2965        8121.09s
+3 vez       2962        8123.5s
+4 vez       2961        8108.02s
+5 vez       2959        8130.75s
+6 vez       2959        7540.59s
+7 vez       2962        7565.62s
+8 vez       2962        7483.59s
+9 vez       2965        7511.43s
+10 vez      2960        7540.13s
 
-M2
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
-6 vez
-7 vez
-8 vez
-9 vez
-10 vez
+M2 (5 em paralelo)
+1 vez       2968        9540.83s
+2 vez       2965        9545.46s
+3 vez       2965        9550.43s
+4 vez       2963        9548.42s
+5 vez       2965        9545.27s
+6 vez       2965        8459.86s
+7 vez       2965        8537.65s
+8 vez       2967        8456.58s
+9 vez       2965        8503.7s
+10 vez      2964        8519.14s
 
 M3
-1 vez
-2 vez
-3 vez
-4 vez
-5 vez
+1 vez       2698        6567.26s
+2 vez       2967        6560.62s
+3 vez       2694        6555.56s
+4 vez       2694        6527.93s
+5 vez       2698        6563.4s
 6 vez
 7 vez
 8 vez
