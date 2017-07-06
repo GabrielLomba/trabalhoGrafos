@@ -1419,7 +1419,7 @@ void Grafo::showCoberturaGulosoRandomizado(double alpha, int numIteracoes) {
     cout << "}\n\nPeso Total: " << melhorSolucao.second << "\n";
 }
 
-struct alphaProb{
+struct alphaProb {
     float prob;
     float alpha;
 };
@@ -1447,20 +1447,20 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
     // usado na randomização para determinar qual alpha será escolhido
     default_random_engine generator((unsigned int) time(0));
 
-    for (int i = 0; i < numIteracoes; ++i) {
+    for (int i = 0; i < TAM_REATIVO; ++i) {
         // a cada blocoIteracoes iterações, devemos atualizar os vetores q e as probabilidades
         if (i % blocoIteracoes == 0) {
             // atualizamos o vetor q
-            for(int j = 0; j < TAM_REATIVO; ++j) {
+            for (int j = 0; j < TAM_REATIVO; ++j) {
                 q[j] = melhorSolucao.second / media[j];
             }
 
             // calculamos a soma dos valores do vetor q
             float qSum = 0.0f;
-            for(int j = 0; j < TAM_REATIVO; ++j) qSum += q[j];
+            for (int j = 0; j < TAM_REATIVO; ++j) qSum += q[j];
 
             // atualizamos as probabilidades
-            for(int j = 0; j < TAM_REATIVO; ++j) {
+            for (int j = 0; j < TAM_REATIVO; ++j) {
                 alphaProbs[j].prob = q[j] / qSum;
             }
         }
@@ -1471,11 +1471,11 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
         uniform_int_distribution<int> distr(0, 100);
         float escolhido = (float) distr(generator) / 100;
 
-        for(int j = 0; j < TAM_REATIVO; ++j){
+        for (int j = 0; j < TAM_REATIVO; ++j) {
             // o valor das probabilidades é subtraído do valor escolhido até chegarmos a um valor negativo.
             // Então, caso escolhido seja negativo ou zero, ele caiu na faixa de probabilidades, prob[i] é selecionado
             escolhido -= alphaProbs[j].prob;
-            if(escolhido <= 0) {
+            if (escolhido <= 0) {
                 indiceEscolhido = j;
                 break;
             }
@@ -1486,7 +1486,7 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
         solucao = construirSolucaoRandomizada(alphaVal, numIteracoes / TAM_REATIVO);
 
         // caso a solução seja melhor do que a anterior, atualizamos a melhor solução
-        if(solucao.second < melhorSolucao.second){
+        if (solucao.second < melhorSolucao.second) {
             melhorSolucao = solucao;
         }
 
@@ -1494,6 +1494,10 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
         ++totalChamada[indiceEscolhido];
         totalSolucao[indiceEscolhido] += solucao.second;
         media[indiceEscolhido] = totalSolucao[indiceEscolhido] / totalChamada[indiceEscolhido];
+
+        if (i % 5 == 0) {
+            cout << i << " iteraçoes concluidas\n";
+        }
     }
 
     cout << "Solucao encontrada pelo algoritmo guloso randomizado reativo:\nS = {";
@@ -1503,7 +1507,17 @@ void Grafo::showCoberturaGulosoRandomizadoReativo(int numIteracoes, int blocoIte
         else cout << ", " << melhorSolucao.first[i]->getId();
     }
 
-    cout << "}\n\nPeso Total: " << melhorSolucao.second << "\n";
+    int maxChamada = 0;
+    for (int i = 0; i < TAM_REATIVO; i++) {
+        if (totalChamada[i] > maxChamada) {
+            maxChamada = i;
+        }
+    }
+
+    float modaAlpha = alphaProbs[maxChamada].alpha;
+    cout << "}\n\nModa Alfa: " << modaAlpha << "\n";
+
+    cout << "Peso Total: " << melhorSolucao.second << "\n";
 }
 
 //true -> no1 primeiro
@@ -1531,7 +1545,7 @@ struct comparatorNo {
     }
 };
 
-pair<vector<No*>, int> Grafo::construirSolucaoRandomizada(double alpha, int numIteracoes) {
+pair<vector<No *>, int> Grafo::construirSolucaoRandomizada(double alpha, int numIteracoes) {
     Clock *clock = new Clock("Gulosera");
 
     //auxiliar para mostrar progresso na interface
@@ -1551,12 +1565,12 @@ pair<vector<No*>, int> Grafo::construirSolucaoRandomizada(double alpha, int numI
         }
         //atualizar auxiliar que mostra informações na interface
         ++k;
-        if(k % 5 == 0){
+        if (k % 5 == 0) {
             cout << k << " iteraçoes concluidas\n";
         }
     }
 
-    delete(clock);
+    delete (clock);
     return melhorSolucao;
 }
 
